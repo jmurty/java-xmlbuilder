@@ -35,6 +35,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import net.iharder.base64.Base64;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -329,13 +331,15 @@ public class XMLBuilder {
      * was added (<strong>not</strong> the new CDATA node).
      * 
      * @param data
-     * the data value to add to the element.
+     * the data value that will be Base64-encoded and added to a CDATA element.
      * 
      * @return
      * the builder node representing the element to which the data was added.
      */
-    public XMLBuilder cdata(String data) {
-        xmlElement.appendChild(getDocument().createCDATASection(data));
+    public XMLBuilder cdata(byte[] data) {
+        xmlElement.appendChild(
+            getDocument().createCDATASection(
+                Base64.encodeBytes(data, Base64.DONT_BREAK_LINES)));
         return this;
     }
 
@@ -348,7 +352,7 @@ public class XMLBuilder {
      * @return
      * the builder node representing the element to which the data was added.
      */
-    public XMLBuilder data(String data) {
+    public XMLBuilder data(byte[] data) {
         return cdata(data);
     }
 
@@ -361,7 +365,7 @@ public class XMLBuilder {
      * @return
      * the builder node representing the element to which the data was added.
      */
-    public XMLBuilder d(String data) {
+    public XMLBuilder d(byte[] data) {
         return cdata(data);
     }
 
