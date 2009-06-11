@@ -19,6 +19,7 @@
  */
 package com.jamesmurty.utils;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Iterator;
@@ -34,6 +35,10 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import net.iharder.base64.Base64;
 
@@ -41,6 +46,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * XML Builder is a utility that creates simple XML documents using relatively 
@@ -77,50 +84,41 @@ public class XMLBuilder {
     private Document xmlDocument = null;
 
     /**
-     * This node's parent XML builder node, if any. All element nodes except 
-     * the docuemnt's root will have a parent.
-     */
-    private XMLBuilder myParent = null;
-    
-    /**
      * The underlying element represented by this builder node. 
      */
     private Element xmlElement = null;
 
     /**
-     * Construct a new builder object that wraps the given XML element, which
-     * in turn will belong to an underlying XML document.  
+     * Construct a new builder object that wraps the given XML document.
      * This constructor is for internal use only.
      * 
      * @param xmlDocument
-     * a new and empty XML document which the builder will manage and manipulate.
-     * @param myElement
-     * the XML element that this builder node will wrap. This element will be
-     * added as the root of the underlying XML document. 
+     * an XML document that the builder will manage and manipulate.
      */
-    protected XMLBuilder(Document xmlDocument, Element myElement) {
-        this.myParent = null;
-        this.xmlElement = myElement;
+    protected XMLBuilder(Document xmlDocument) {
         this.xmlDocument = xmlDocument;
-        this.xmlDocument.appendChild(myElement);
+        this.xmlElement = xmlDocument.getDocumentElement();
     }
 
     /**
-     * Construct a new builder object that wraps the given XML element, and
-     * is the child of an existing XML builder node.
+     * Construct a new builder object that wraps the given XML document
+     * and element element.
      * This constructor is for internal use only.
      * 
-     * @param parent
-     * the builder node that will contain (be the parent of) the new 
-     * XML element.
      * @param myElement
-     * the XML element that this builder node will wrap. This element will be
-     * added as child node of the parent's XML element.
+     * the XML element that this builder node will wrap. This element may 
+     * be part of the XML document, or it may be a new element that is to be
+     * added to the document.
+     * @param parentElement
+     * If not null, the given myElement will be appended as child node of the 
+     * parentElement node.
      */
-    protected XMLBuilder(XMLBuilder parent, Element myElement) {
-        this.myParent = parent;
+    protected XMLBuilder(Element myElement, Element parentElement) {
         this.xmlElement = myElement;
-        parent.xmlElement.appendChild(myElement);
+        this.xmlDocument = myElement.getOwnerDocument();
+        if (parentElement != null) {
+        	parentElement.appendChild(myElement);
+        }
     }
     
     /**
@@ -143,30 +141,67 @@ public class XMLBuilder {
         DocumentBuilder builder = 
             DocumentBuilderFactory.newInstance().newDocumentBuilder();
         Document document = builder.newDocument();
-        return new XMLBuilder(document, document.createElement(name));
+        Element rootElement = document.createElement(name);
+        document.appendChild(rootElement);
+        return new XMLBuilder(document);
+    }
+
+    /**
+     * Construct a builder from an existing XML document. The provided XML
+     * document will be parsed and an XMLBuilder object referencing the
+     * document's root element will be returned.
+     * 
+     * @param inputSource
+     * an XML document input source that will be parsed into a DOM.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     * @throws ParserConfigurationException 
+     * 
+     * @throws FactoryConfigurationError 
+     * @throws ParserConfigurationException 
+     * @throws IOException 
+     * @throws SAXException 
+     */
+    public static XMLBuilder parse(InputSource inputSource) 
+    	throws ParserConfigurationException, SAXException, IOException 
+    {
+        DocumentBuilder builder = 
+            DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        Document document = builder.parse(inputSource);
+        return new XMLBuilder(document);
     }
     
+    /**
+     * @return
+     * true if the XML Document and Element objects wrapped by this
+     * builder are equal to the other's wrapped objects.
+     */
+    public boolean equals(Object obj) {
+    	if (obj != null && obj instanceof XMLBuilder) {
+    		XMLBuilder other = (XMLBuilder) obj;
+    		return 
+    			this.xmlDocument.equals(other.getDocument())
+    			&& this.xmlElement.equals(other.getElement());
+    	}
+    	return false;
+    }
+
     /**
      * @return
      * the XML element that this builder node will manipulate.
      */
     public Element getElement() {
-        return xmlElement;
+        return this.xmlElement;
     }
 
     /**
      * @return
      * the builder node representing the root element of the XML document.
-     * In other words, the same builder node returned by the 
-     * {@link #create(String)} method.
+     * In other words, the same builder node returned by the initial 
+     * {@link #create(String)} or {@link #parse(InputSource)} method.
      */
     public XMLBuilder root() {
-        // Navigate back through all parents to find the document's root node.
-        XMLBuilder curr = this;
-        while (curr.myParent != null) {
-            curr = curr.myParent;
-        }
-        return curr;
+        return new XMLBuilder(getDocument());
     }
     
     /**
@@ -174,7 +209,35 @@ public class XMLBuilder {
      * the XML document constructed by all builder nodes.
      */
     public Document getDocument() {
-        return root().xmlDocument;
+    	return this.xmlDocument;
+    }
+    
+    /**
+     * Find the first element in the builder's DOM matching the given
+     * XPath expression. 
+     * 
+     * @param xpath
+     * An XPath expression that *must* resolve to an existing Element within
+     * the document object model. 
+     * 
+     * @return
+     * a builder node representing the first Element that matches the 
+     * XPath expression.
+     * 
+     * @throws XPathExpressionException
+     * If the XPath is invalid, or if does not resolve to at least one
+     * {@link Node.ELEMENT_NODE}.
+     */
+    public XMLBuilder xpathFind(String xpath) throws XPathExpressionException {
+    	XPathFactory xpathFactory = XPathFactory.newInstance();
+    	XPathExpression xpathExp = xpathFactory.newXPath().compile(xpath);
+    	Node foundNode = (Node) xpathExp.evaluate(this.xmlElement, XPathConstants.NODE);
+    	if (foundNode == null || foundNode.getNodeType() != Node.ELEMENT_NODE) {
+    		throw new XPathExpressionException("XPath expression \"" 
+				+ xpath + "\" does not resolve to an Element in context "
+				+ this.xmlElement + ": " + foundNode);
+    	}
+    	return new XMLBuilder((Element) foundNode, null);
     }
     
     /**
@@ -207,8 +270,7 @@ public class XMLBuilder {
                 + "> that already contains the Text node: " + textNode);
         }
         
-        XMLBuilder child = new XMLBuilder(this, getDocument().createElement(name));        
-        return child;
+        return new XMLBuilder(getDocument().createElement(name), this.xmlElement);        
     }
     
     /**
@@ -521,13 +583,13 @@ public class XMLBuilder {
      * reached before the n<em>th</em> parent is found.
      */
     public XMLBuilder up(int steps) {
-        XMLBuilder curr = this;
+    	Node currNode = (Node) this.xmlElement;
         int stepCount = 0;
-        while (curr.myParent != null && stepCount < steps) {
-            curr = curr.myParent;            
+        while (currNode.getParentNode() != null && stepCount < steps) {
+        	currNode = currNode.getParentNode();
             stepCount++;
         }        
-        return curr;
+        return new XMLBuilder((Element) currNode, null);
     }
     
     /**

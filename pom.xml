@@ -4,7 +4,7 @@
   <groupId>com.jamesmurty.utils</groupId>
   <artifactId>java-xmlbuilder</artifactId>
   <packaging>jar</packaging>
-  <version>0.3-SNAPSHOT</version>
+  <version>0.3</version>
   <name>java-xmlbuilder</name>
   <url>http://code.google.com/p/java-xmlbuilder/</url>
   <dependencies>
