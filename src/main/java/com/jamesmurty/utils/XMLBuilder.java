@@ -588,8 +588,12 @@ public class XMLBuilder {
         while (currNode.getParentNode() != null && stepCount < steps) {
         	currNode = currNode.getParentNode();
             stepCount++;
-        }        
-        return new XMLBuilder((Element) currNode, null);
+        }
+        if (currNode instanceof Document) {
+            return new XMLBuilder((Document) currNode);                        
+        } else {
+            return new XMLBuilder((Element) currNode, null);            
+        }
     }
     
     /**

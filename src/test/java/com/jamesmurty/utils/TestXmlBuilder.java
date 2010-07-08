@@ -140,5 +140,20 @@ public class TestXmlBuilder extends TestCase {
 			EXAMPLE_XML_DOC_START + "<Location2 type=\"Testing\"/>" + EXAMPLE_XML_DOC_END,
 			xmlAsString);
 	}
-	
+
+   public void testTraversalDuringBuild() throws ParserConfigurationException, SAXException, 
+       IOException, XPathExpressionException, TransformerException 
+   {
+       XMLBuilder builder = XMLBuilder.create("ElemDepth1")
+           .e("ElemDepth2")
+           .e("ElemDepth3")
+           .e("ElemDepth4");
+       assertEquals("ElemDepth3", builder.up().getElement().getNodeName());
+       assertEquals("ElemDepth1", builder.up(3).getElement().getNodeName());
+       // Traverse too far up the node tree...
+       assertEquals("ElemDepth1", builder.up(4).getElement().getNodeName());
+       // Traverse way too far up the node tree...
+       assertEquals("ElemDepth1", builder.up(100).getElement().getNodeName());
+   }
+   
 }
