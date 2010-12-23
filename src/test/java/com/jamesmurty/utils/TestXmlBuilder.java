@@ -3,6 +3,7 @@ package com.jamesmurty.utils;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 import javax.xml.parsers.FactoryConfigurationError;
@@ -10,6 +11,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 
+import net.iharder.base64.Base64;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -191,6 +196,45 @@ public class TestXmlBuilder extends TestCase {
         } catch (IllegalStateException e) {
             // Expected
         }
+    }
+
+    public void testCDataNodes() throws ParserConfigurationException,
+        FactoryConfigurationError, UnsupportedEncodingException, XPathExpressionException
+    {
+        String text = "Text data -- left as it is";
+        String textForBytes = "Byte data is automatically base64-encoded";
+        String textEncoded = Base64.encodeBytes(textForBytes.getBytes("UTF-8"));
+
+        XMLBuilder builder = XMLBuilder.create("TestCDataNodes")
+            .elem("CDataTextElem")
+                .cdata(text)
+                .up()
+            .elem("CDataBytesElem")
+                .cdata(textForBytes.getBytes("UTF-8"));
+
+        Node cdataTextNode = builder.xpathFind("//CDataTextElem")
+            .getElement().getChildNodes().item(0);
+        assertEquals(Node.CDATA_SECTION_NODE, cdataTextNode.getNodeType());
+        assertEquals(text, cdataTextNode.getNodeValue());
+
+        Node cdataBytesNode = builder.xpathFind("//CDataBytesElem")
+            .getElement().getChildNodes().item(0);
+        assertEquals(Node.CDATA_SECTION_NODE, cdataBytesNode.getNodeType());
+        assertEquals(textEncoded, cdataBytesNode.getNodeValue());
+        String base64Decoded = new String(Base64.decode(cdataBytesNode.getNodeValue()));
+        assertEquals(textForBytes, base64Decoded);
+    }
+
+    public void testElementAsString() throws ParserConfigurationException,
+        FactoryConfigurationError, TransformerException, XPathExpressionException
+    {
+        XMLBuilder builder = XMLBuilder.create("This")
+            .elem("Is").elem("My").text("Test");
+        // By default, entire XML document is serialized regardless of starting-point
+        assertEquals("<This><Is><My>Test</My></Is></This>", builder.asString());
+        assertEquals("<This><Is><My>Test</My></Is></This>", builder.xpathFind("//My").asString());
+        // Serialize a specific Element and its descendants with elementAsString
+        assertEquals("<My>Test</My>", builder.xpathFind("//My").elementAsString());
     }
 
 }

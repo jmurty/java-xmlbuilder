@@ -207,7 +207,7 @@ public class XMLBuilder {
 
     /**
      * @return
-     * the XML element that this builder node will manipulate.
+     * the XML element wrapped by this builder node.
      */
     public Element getElement() {
         return this.xmlElement;
@@ -393,9 +393,52 @@ public class XMLBuilder {
     }
 
     /**
-     * Add a CDATA value to the element represented by this builder node, and
-     * return the node representing the element to which the data
-     * was added (<strong>not</strong> the new CDATA node).
+     * Add a CDATA node with String content to the element represented by this
+     * builder node, and return the node representing the element to which the
+     * data was added (<strong>not</strong> the new CDATA node).
+     *
+     * @param data
+     * the String value that will be added to a CDATA element.
+     *
+     * @return
+     * the builder node representing the element to which the data was added.
+     */
+    public XMLBuilder cdata(String data) {
+        xmlElement.appendChild(
+            getDocument().createCDATASection(data));
+        return this;
+    }
+
+    /**
+     * Synonym for {@link #cdata(String)}.
+     *
+     * @param data
+     * the String value that will be added to a CDATA element.
+     *
+     * @return
+     * the builder node representing the element to which the data was added.
+     */
+    public XMLBuilder data(String data) {
+        return cdata(data);
+    }
+
+    /**
+     * Synonym for {@link #cdata(String)}.
+     *
+     * @param data
+     * the String value that will be added to a CDATA element.
+     *
+     * @return
+     * the builder node representing the element to which the data was added.
+     */
+    public XMLBuilder d(String data) {
+        return cdata(data);
+    }
+
+    /**
+     * Add a CDATA node with Base64-encoded byte data content to the element represented
+     * by this builder node, and return the node representing the element to which the
+     * data was added (<strong>not</strong> the new CDATA node).
      *
      * @param data
      * the data value that will be Base64-encoded and added to a CDATA element.
@@ -411,10 +454,10 @@ public class XMLBuilder {
     }
 
     /**
-     * Synonym for {@link #cdata(String)}.
+     * Synonym for {@link #cdata(byte[])}.
      *
      * @param data
-     * the data value to add to the element.
+     * the data value that will be Base64-encoded and added to a CDATA element.
      *
      * @return
      * the builder node representing the element to which the data was added.
@@ -424,10 +467,10 @@ public class XMLBuilder {
     }
 
     /**
-     * Synonym for {@link #cdata(String)}.
+     * Synonym for {@link #cdata(byte[])}.
      *
      * @param data
-     * the data value to add to the element.
+     * the data value that will be Base64-encoded and added to a CDATA element.
      *
      * @return
      * the builder node representing the element to which the data was added.
@@ -634,6 +677,50 @@ public class XMLBuilder {
     }
 
     /**
+     * Serialize either the specific Element wrapped by this XMLBuilder, or its entire
+     * XML document, to the given writer using the default {@link TransformerFactory}
+     * and {@link Transformer} classes.
+     * If output options are provided, these options are provided to the
+     * {@link Transformer} serializer.
+     *
+     * @param wholeDocument
+     * if true the whole XML document (i.e. the document root) is serialized,
+     * if false just the current Element and its descendants are serialized.
+     * @param writer
+     * a writer to which the serialized document is written.
+     * @param outputProperties
+     * settings for the {@link Transformer} serializer. This parameter may be
+     * null or an empty Properties object, in which case the default output
+     * properties will be applied.
+     *
+     * @throws TransformerException
+     */
+    public void toWriter(boolean wholeDocument, Writer writer, Properties outputProperties)
+        throws TransformerException
+    {
+        StreamResult streamResult = new StreamResult(writer);
+
+        DOMSource domSource = null;
+        if (wholeDocument) {
+            domSource = new DOMSource(getDocument());
+        } else {
+            domSource = new DOMSource(getElement());
+        }
+
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer serializer = tf.newTransformer();
+
+        if (outputProperties != null) {
+            Iterator iter = outputProperties.entrySet().iterator();
+            while (iter.hasNext()) {
+                Entry entry = (Entry) iter.next();
+                serializer.setOutputProperty((String) entry.getKey(), (String) entry.getValue());
+            }
+        }
+        serializer.transform(domSource, streamResult);
+    }
+
+    /**
      * Serialize the XML document to the given writer using the default
      * {@link TransformerFactory} and {@link Transformer} classes. If output
      * options are provided, these options are provided to the
@@ -651,20 +738,7 @@ public class XMLBuilder {
     public void toWriter(Writer writer, Properties outputProperties)
         throws TransformerException
     {
-        StreamResult streamResult = new StreamResult(writer);
-
-        DOMSource domSource = new DOMSource(getDocument());
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer serializer = tf.newTransformer();
-
-        if (outputProperties != null) {
-            Iterator iter = outputProperties.entrySet().iterator();
-            while (iter.hasNext()) {
-                Entry entry = (Entry) iter.next();
-                serializer.setOutputProperty((String) entry.getKey(), (String) entry.getValue());
-            }
-        }
-        serializer.transform(domSource, streamResult);
+        this.toWriter(true, writer, outputProperties);
     }
 
     /**
@@ -692,6 +766,30 @@ public class XMLBuilder {
     }
 
     /**
+     * Serialize the current XML Element and its descendants to a string by
+     * delegating to the {@link #toWriter(Writer, Properties)} method.
+     * If output options are provided, these options are provided to the
+     * {@link Transformer} serializer.
+     *
+     * @param outputProperties
+     * settings for the {@link Transformer} serializer. This parameter may be
+     * null or an empty Properties object, in which case the default output
+     * properties will be applied.
+     *
+     * @return
+     * the XML document as a string
+     *
+     * @throws TransformerException
+     */
+    public String elementAsString(Properties outputProperties)
+        throws TransformerException
+    {
+        StringWriter writer = new StringWriter();
+        toWriter(false, writer, outputProperties);
+        return writer.toString();
+    }
+
+    /**
      * Serialize the XML document to a string excluding the XML declaration.
      *
      * @return
@@ -704,6 +802,22 @@ public class XMLBuilder {
         Properties outputProperties = new Properties();
         outputProperties.put(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
         return asString(outputProperties);
+    }
+
+    /**
+     * Serialize the current XML Element and its descendants to a string
+     * excluding the XML declaration.
+     *
+     * @return
+     * the XML document as a string without the XML declaration at the
+     * beginning of the output.
+     *
+     * @throws TransformerException
+     */
+    public String elementAsString() throws TransformerException {
+        Properties outputProperties = new Properties();
+        outputProperties.put(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
+        return elementAsString(outputProperties);
     }
 
 }
