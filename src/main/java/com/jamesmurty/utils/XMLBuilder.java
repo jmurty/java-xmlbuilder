@@ -340,10 +340,17 @@ public class XMLBuilder {
      * @throws IllegalStateException
      * if you attempt to add a child element to an XML node that already
      * contains a text node value.
+     * @throws IllegalArgumentException
+     * if you attempt to add an element with a prefix name where that
+     * prefix is not already a defined namespace in the document.
      */
     public XMLBuilder element(String name) {
         String prefix = getPrefixFromQualifiedName(name);
         String namespaceURI = this.xmlElement.lookupNamespaceURI(prefix);
+        if (prefix != null && prefix.length() > 0 && namespaceURI == null) {
+            throw new IllegalArgumentException(
+                "Prefix '" + prefix + "' does not have a defined namespace");
+        }
         return element(name, namespaceURI);
     }
 
