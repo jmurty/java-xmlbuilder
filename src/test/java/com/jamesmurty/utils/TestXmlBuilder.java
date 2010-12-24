@@ -237,4 +237,65 @@ public class TestXmlBuilder extends TestCase {
         assertEquals("<My>Test</My>", builder.xpathFind("//My").elementAsString());
     }
 
+    public void testNamespaces() throws ParserConfigurationException,
+        FactoryConfigurationError, TransformerException, XPathExpressionException
+    {
+        XMLBuilder builder = XMLBuilder
+            .create("NamespaceTest", "urn:default")
+                .namespace("prefix1", "urn:ns1")
+
+                .element("NoNamespace").up()
+
+                .element("NSDefault", "urn:default").up()
+
+                .element("NS1Explicit", "urn:ns1").up()
+                .element("prefix1:NS1ByPrefix", "urn:ns1").up();
+
+        // Build a namespace context from the builder's document
+        NamespaceContextImpl context = builder.buildDocumentNamespaceContext();
+
+        // Find node with no namespace using xpath query with or without context
+        builder.xpathFind("//NoNamespace");
+        builder.xpathFind("//NoNamespace", context);
+
+        // Find nodes with default namespace
+        builder.xpathFind("/:NamespaceTest", context);
+        builder.xpathFind("//:NSDefault", context);
+
+        // Must use namespace-aware xpath to find namespaced nodes
+        try {
+            builder.xpathFind("//NSDefault");
+            fail();
+        } catch (XPathExpressionException e) {}
+        try {
+            builder.xpathFind("//:NSDefault");
+            fail();
+        } catch (XPathExpressionException e) {}
+        try {
+            builder.xpathFind("//NSDefault", context);
+            fail();
+        } catch (XPathExpressionException e) {}
+
+        // Find node with namespace prefix
+        builder.xpathFind("//prefix1:NS1Explicit", context);
+        builder.xpathFind("//prefix1:NS1ByPrefix", context);
+
+        // Find nodes with user-defined prefix "aliases"
+        context.addNamespace("default-alias", "urn:default");
+        context.addNamespace("prefix1-alias", "urn:ns1");
+        builder.xpathFind("//default-alias:NSDefault", context);
+        builder.xpathFind("//prefix1-alias:NS1Explicit", context);
+
+        // User can override context mappings, for better or worse
+        context.addNamespace("", "urn:default");
+        builder.xpathFind("//:NSDefault", context);
+
+        context.addNamespace("", "urn:wrong");
+        try {
+            builder.xpathFind("//:NSDefault", context);
+            fail();
+        } catch (XPathExpressionException e) {}
+
+    }
+
 }

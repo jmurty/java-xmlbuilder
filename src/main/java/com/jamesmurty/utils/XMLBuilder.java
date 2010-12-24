@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Map.Entry;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
@@ -35,6 +36,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
@@ -88,6 +90,8 @@ public class XMLBuilder {
      */
     private Element xmlElement = null;
 
+    private static boolean isNamespaceAware = true; // TODO: Make this configurable?
+
     /**
      * Construct a new builder object that wraps the given XML document.
      * This constructor is for internal use only.
@@ -122,6 +126,40 @@ public class XMLBuilder {
     }
 
     /**
+     * Construct a builder for new XML document with a default namespace.
+     * The document will be created with the given root element, and the builder
+     * returned by this method will serve as the starting-point for any further
+     * document additions.
+     *
+     * @param name
+     * the name of the document's root element.
+     * @param namespaceURI
+     * default namespace URI for document, ignored if null or empty.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     *
+     * @throws FactoryConfigurationError
+     * @throws ParserConfigurationException
+     */
+    public static XMLBuilder create(String name, String namespaceURI)
+        throws ParserConfigurationException, FactoryConfigurationError
+    {
+        // Init DOM builder and Document.
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(isNamespaceAware);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.newDocument();
+        Element rootElement = null;
+        if (namespaceURI != null && namespaceURI.length() > 0) {
+            rootElement = document.createElementNS(namespaceURI, name);
+        } else {
+            rootElement = document.createElement(name);
+        }
+        document.appendChild(rootElement);
+        return new XMLBuilder(document);
+    }
+
+    /**
      * Construct a builder for new XML document. The document will be created
      * with the given root element, and the builder returned by this method
      * will serve as the starting-point for any further document additions.
@@ -137,13 +175,7 @@ public class XMLBuilder {
     public static XMLBuilder create(String name)
         throws ParserConfigurationException, FactoryConfigurationError
     {
-        // Init DOM builder and Document.
-        DocumentBuilder builder =
-            DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        Document document = builder.newDocument();
-        Element rootElement = document.createElement(name);
-        document.appendChild(rootElement);
-        return new XMLBuilder(document);
+        return create(name, null);
     }
 
     /**
@@ -165,8 +197,9 @@ public class XMLBuilder {
     public static XMLBuilder parse(InputSource inputSource)
     	throws ParserConfigurationException, SAXException, IOException
     {
-        DocumentBuilder builder =
-            DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(isNamespaceAware);
+        DocumentBuilder builder = factory.newDocumentBuilder();
         Document document = builder.parse(inputSource);
         return new XMLBuilder(document);
     }
@@ -195,6 +228,7 @@ public class XMLBuilder {
      * true if the XML Document and Element objects wrapped by this
      * builder are equal to the other's wrapped objects.
      */
+    @Override
     public boolean equals(Object obj) {
     	if (obj != null && obj instanceof XMLBuilder) {
     		XMLBuilder other = (XMLBuilder) obj;
@@ -233,6 +267,44 @@ public class XMLBuilder {
 
     /**
      * Find the first element in the builder's DOM matching the given
+     * XPath expression, where the expression may include namespaces if
+     * a {@link NamespaceContext} is provided.
+     *
+     * @param xpath
+     * An XPath expression that *must* resolve to an existing Element within
+     * the document object model.
+     * @param nsContext
+     * a mapping of prefixes to namespace URIs that allows the XPath expression
+     * to use namespaces.
+     *
+     * @return
+     * a builder node representing the first Element that matches the
+     * XPath expression.
+     *
+     * @throws XPathExpressionException
+     * If the XPath is invalid, or if does not resolve to at least one
+     * {@link Node.ELEMENT_NODE}.
+     */
+    public XMLBuilder xpathFind(String xpath, NamespaceContext nsContext)
+        throws XPathExpressionException
+    {
+    	XPathFactory xpathFactory = XPathFactory.newInstance();
+    	XPath xPath = xpathFactory.newXPath();
+    	if (nsContext != null) {
+    	    xPath.setNamespaceContext(nsContext);
+    	}
+    	XPathExpression xpathExp = xPath.compile(xpath);
+    	Node foundNode = (Node) xpathExp.evaluate(this.xmlElement, XPathConstants.NODE);
+    	if (foundNode == null || foundNode.getNodeType() != Node.ELEMENT_NODE) {
+    		throw new XPathExpressionException("XPath expression \""
+				+ xpath + "\" does not resolve to an Element in context "
+				+ this.xmlElement + ": " + foundNode);
+    	}
+    	return new XMLBuilder((Element) foundNode, null);
+    }
+
+    /**
+     * Find the first element in the builder's DOM matching the given
      * XPath expression.
      *
      * @param xpath
@@ -248,15 +320,7 @@ public class XMLBuilder {
      * {@link Node.ELEMENT_NODE}.
      */
     public XMLBuilder xpathFind(String xpath) throws XPathExpressionException {
-    	XPathFactory xpathFactory = XPathFactory.newInstance();
-    	XPathExpression xpathExp = xpathFactory.newXPath().compile(xpath);
-    	Node foundNode = (Node) xpathExp.evaluate(this.xmlElement, XPathConstants.NODE);
-    	if (foundNode == null || foundNode.getNodeType() != Node.ELEMENT_NODE) {
-    		throw new XPathExpressionException("XPath expression \""
-				+ xpath + "\" does not resolve to an Element in context "
-				+ this.xmlElement + ": " + foundNode);
-    	}
-    	return new XMLBuilder((Element) foundNode, null);
+        return xpathFind(xpath, null);
     }
 
     /**
@@ -274,8 +338,7 @@ public class XMLBuilder {
      * contains a text node value.
      */
     public XMLBuilder element(String name) {
-        assertCurrentElementHasNoTextNodes();
-        return new XMLBuilder(getDocument().createElement(name), this.xmlElement);
+        return element(name, null);
     }
 
     /**
@@ -310,6 +373,31 @@ public class XMLBuilder {
      */
     public XMLBuilder e(String name) {
         return element(name);
+    }
+
+    /**
+     * Add a named and namespaced XML element to the document as a child of
+     * this builder node, and return the builder node representing the new child.
+     *
+     * @param name
+     * the name of the XML element.
+     * @param namespaceURI
+     * a namespace URI
+     *
+     * @return
+     * a builder node representing the new child.
+     *
+     * @throws IllegalStateException
+     * if you attempt to add a child element to an XML node that already
+     * contains a text node value.
+     */
+    public XMLBuilder element(String name, String namespaceURI) {
+        assertCurrentElementHasNoTextNodes();
+        return new XMLBuilder(
+            (namespaceURI == null
+                ? getDocument().createElement(name)
+                : getDocument().createElementNS(namespaceURI, name)),
+            this.xmlElement);
     }
 
     /**
@@ -618,6 +706,73 @@ public class XMLBuilder {
     }
 
     /**
+     * Add an XML namespace attribute to this builder's element node.
+     *
+     * @param prefix
+     * a prefix for the namespace URI within the document, may be null
+     * or empty in which case a default "xmlns" attribute is created.
+     * @param namespaceURI
+     * a namespace uri
+     *
+     * @return
+     * the builder node representing the element to which the attribute was added.
+     */
+    public XMLBuilder namespace(String prefix, String namespaceURI) {
+        if (prefix != null && prefix.length() > 0) {
+            xmlElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+                "xmlns:" + prefix, namespaceURI);
+        } else {
+            xmlElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+                "xmlns", namespaceURI);
+        }
+        return this;
+    }
+
+    /**
+     * Synonym for {@link #namespace(String, String)}.
+     *
+     * @param prefix
+     * a prefix for the namespace URI within the document, may be null
+     * or empty in which case a default xmlns attribute is created.
+     * @param namespaceURI
+     * a namespace uri
+     *
+     * @return
+     * the builder node representing the element to which the attribute was added.
+     */
+    public XMLBuilder ns(String prefix, String namespaceURI) {
+        return attribute(prefix, namespaceURI);
+    }
+
+    /**
+     * Add an XML namespace attribute to this builder's element node
+     * without a prefix.
+     *
+     * @param namespaceURI
+     * a namespace uri
+     *
+     * @return
+     * the builder node representing the element to which the attribute was added.
+     */
+    public XMLBuilder namespace(String namespaceURI) {
+        this.namespace(null, namespaceURI);
+        return this;
+    }
+
+    /**
+     * Synonym for {@link #namespace(String)}.
+     *
+     * @param namespaceURI
+     * a namespace uri
+     *
+     * @return
+     * the builder node representing the element to which the attribute was added.
+     */
+    public XMLBuilder ns(String namespaceURI) {
+        return namespace(namespaceURI);
+    }
+
+    /**
      * Return the builder node representing the n<em>th</em> ancestor element
      * of this node, or the root node if n exceeds the document's depth.
      *
@@ -818,6 +973,16 @@ public class XMLBuilder {
         Properties outputProperties = new Properties();
         outputProperties.put(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
         return elementAsString(outputProperties);
+    }
+
+    /**
+     * @return
+     * a namespace context containing the prefixes and namespace URI's used
+     * within this builder's document, to assist in running namespace-aware
+     * XPath queries against the document.
+     */
+    public NamespaceContextImpl buildDocumentNamespaceContext() {
+        return new NamespaceContextImpl(this.root().getElement());
     }
 
 }
