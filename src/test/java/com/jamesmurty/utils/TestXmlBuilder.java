@@ -305,12 +305,9 @@ public class TestXmlBuilder extends TestCase {
             fail();
         } catch (XPathExpressionException e) {}
 
-        // Users are prevented from creating elements that reference
-        // an undefined namespace prefix.
-        try {
-            builder.element("undefined-prefix:ElementName");
-            fail("Element cannot be created with prefix that is undefined");
-        } catch (IllegalArgumentException e) {}
+        // Users are not prevented from creating elements that reference
+        // an undefined namespace prefix -- user beware
+        builder.element("undefined-prefix:ElementName");
     }
 
 }
