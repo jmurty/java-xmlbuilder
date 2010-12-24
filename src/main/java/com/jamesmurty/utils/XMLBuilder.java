@@ -327,6 +327,10 @@ public class XMLBuilder {
      * Add a named XML element to the document as a child of this builder node,
      * and return the builder node representing the new child.
      *
+     * When adding an element to a namespaced document, the new node will be
+     * assigned a namespace matching it's qualified name prefix (if any) or
+     * the document's default namespace.
+     *
      * @param name
      * the name of the XML element.
      *
@@ -338,7 +342,9 @@ public class XMLBuilder {
      * contains a text node value.
      */
     public XMLBuilder element(String name) {
-        return element(name, null);
+        String prefix = getPrefixFromQualifiedName(name);
+        String namespaceURI = this.xmlElement.lookupNamespaceURI(prefix);
+        return element(name, namespaceURI);
     }
 
     /**
@@ -983,6 +989,15 @@ public class XMLBuilder {
      */
     public NamespaceContextImpl buildDocumentNamespaceContext() {
         return new NamespaceContextImpl(this.root().getElement());
+    }
+
+    protected String getPrefixFromQualifiedName(String qualifiedName) {
+        int colonPos = qualifiedName.indexOf(':');
+        if (colonPos > 0) {
+            return qualifiedName.substring(0, colonPos);
+        } else {
+            return null;
+        }
     }
 
 }
