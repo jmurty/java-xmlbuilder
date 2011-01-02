@@ -27,6 +27,7 @@ import java.util.Properties;
 import java.util.Map.Entry;
 
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
@@ -266,6 +267,72 @@ public class XMLBuilder {
     }
 
     /**
+     * Return the result of evaluating an XPath query on the builder's DOM
+     * using the given namespace. Returns null if the query finds nothing,
+     * or finds a node that does not match the type specified by returnType.
+     *
+     * @param xpath
+     * an XPath expression
+     * @param type
+     * the type the XPath is expected to resolve to, e.g:
+     * {@link XPathConstants#NODE}, {@link XPathConstants#NODESET},
+     * {@link XPathConstants#STRING}.
+     * @param nsContext
+     * a mapping of prefixes to namespace URIs that allows the XPath expression
+     * to use namespaces, or null for a non-namespaced document.
+     *
+     * @return
+     * a builder node representing the first Element that matches the
+     * XPath expression.
+     *
+     * @throws XPathExpressionException
+     * If the XPath is invalid, or if does not resolve to at least one
+     * {@link Node.ELEMENT_NODE}.
+     */
+    public Object xpathQuery(String xpath, QName type, NamespaceContext nsContext)
+        throws XPathExpressionException
+    {
+        XPathFactory xpathFactory = XPathFactory.newInstance();
+        XPath xPath = xpathFactory.newXPath();
+        if (nsContext != null) {
+            xPath.setNamespaceContext(nsContext);
+        }
+        XPathExpression xpathExp = xPath.compile(xpath);
+        try {
+            return xpathExp.evaluate(this.xmlElement, type);
+        } catch (IllegalArgumentException e) {
+            // Thrown if item found does not match expected type
+            return null;
+        }
+    }
+
+    /**
+     * Return the result of evaluating an XPath query on the builder's DOM.
+     * Returns null if the query finds nothing,
+     * or finds a node that does not match the type specified by returnType.
+     *
+     * @param xpath
+     * an XPath expression
+     * @param type
+     * the type the XPath is expected to resolve to, e.g:
+     * {@link XPathConstants#NODE}, {@link XPathConstants#NODESET},
+     * {@link XPathConstants#STRING}
+     *
+     * @return
+     * a builder node representing the first Element that matches the
+     * XPath expression.
+     *
+     * @throws XPathExpressionException
+     * If the XPath is invalid, or if does not resolve to at least one
+     * {@link Node.ELEMENT_NODE}.
+     */
+    public Object xpathQuery(String xpath, QName type)
+        throws XPathExpressionException
+    {
+        return xpathQuery(xpath, type, null);
+    }
+
+    /**
      * Find the first element in the builder's DOM matching the given
      * XPath expression, where the expression may include namespaces if
      * a {@link NamespaceContext} is provided.
@@ -288,13 +355,7 @@ public class XMLBuilder {
     public XMLBuilder xpathFind(String xpath, NamespaceContext nsContext)
         throws XPathExpressionException
     {
-    	XPathFactory xpathFactory = XPathFactory.newInstance();
-    	XPath xPath = xpathFactory.newXPath();
-    	if (nsContext != null) {
-    	    xPath.setNamespaceContext(nsContext);
-    	}
-    	XPathExpression xpathExp = xPath.compile(xpath);
-    	Node foundNode = (Node) xpathExp.evaluate(this.xmlElement, XPathConstants.NODE);
+    	Node foundNode = (Node) this.xpathQuery(xpath, XPathConstants.NODE, nsContext);
     	if (foundNode == null || foundNode.getNodeType() != Node.ELEMENT_NODE) {
     		throw new XPathExpressionException("XPath expression \""
 				+ xpath + "\" does not resolve to an Element in context "

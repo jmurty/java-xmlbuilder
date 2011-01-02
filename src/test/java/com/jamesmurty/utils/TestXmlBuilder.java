@@ -9,16 +9,16 @@ import java.util.Properties;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import junit.framework.TestCase;
 import net.iharder.base64.Base64;
 
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
-import junit.framework.TestCase;
 
 public class TestXmlBuilder extends TestCase {
 
@@ -122,7 +122,40 @@ public class TestXmlBuilder extends TestCase {
 			assertTrue(e.getMessage().contains("does not resolve to an Element"));
 		}
 
+		/* Perform full-strength XPath queries that do not have to
+		 * resolve to an Element, and do not return XMLBuilder instances
+		 */
+
+	    // Find the Location value for the JetS3t project
+        String location = (String) builder.xpathQuery(
+            "//JetS3t/Location/.", XPathConstants.STRING);
+        assertEquals("http://jets3t.s3.amazonaws.com/index.html", location);
+
+        // Count the number of projects (count returned as String)
+        String countAsString = (String) builder.xpathQuery(
+            "count(/Projects/*)", XPathConstants.STRING);
+        assertEquals("2", countAsString);
+
+        // Count the number of projects (count returned as "Number" - actually Double)
+        Number countAsNumber = (Number) builder.xpathQuery(
+            "count(/Projects/*)", XPathConstants.NUMBER);
+        assertEquals(2.0, countAsNumber);
+
+        // Find all nodes under Projects
+        NodeList nodes = (NodeList) builder.xpathQuery(
+            "/Projects/*", XPathConstants.NODESET);
+        assertEquals(2, nodes.getLength());
+        assertEquals("JetS3t", nodes.item(1).getNodeName());
+
+        // Returns null if nothing found when a NODE type is requested...
+        assertNull(builder.xpathQuery("//WrongName", XPathConstants.NODE));
+        // ... or an empty String if a STRING type is requested...
+        assertEquals("", builder.xpathQuery("//WrongName", XPathConstants.STRING));
+        // ... or NaN if a NUMBER type is requested...
+        assertEquals(Double.NaN, builder.xpathQuery("//WrongName", XPathConstants.NUMBER));
+
 		/* Add a new XML element at a specific XPath location in an existing document */
+
 		// Use XPath to get a builder at the insert location
 		XMLBuilder xpathLocB = builder.xpathFind("//JetS3t");
 		assertEquals("JetS3t", xpathLocB.getElement().getNodeName());
@@ -267,8 +300,8 @@ public class TestXmlBuilder extends TestCase {
 
         // Find nodes with default namespace
         builder.xpathFind("/:NamespaceTest", context);
-        builder.xpathFind("//:NSDefaultExplicit", context);
         builder.xpathFind("//:NSDefaultImplicit", context);
+        builder.xpathFind("//:NSDefaultExplicit", context);
 
         // Must use namespace-aware xpath to find namespaced nodes
         try {
