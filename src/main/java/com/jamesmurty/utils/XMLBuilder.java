@@ -287,7 +287,7 @@ public class XMLBuilder {
      *
      * @throws XPathExpressionException
      * If the XPath is invalid, or if does not resolve to at least one
-     * {@link Node.ELEMENT_NODE}.
+     * {@link Node#ELEMENT_NODE}.
      */
     public Object xpathQuery(String xpath, QName type, NamespaceContext nsContext)
         throws XPathExpressionException
@@ -324,7 +324,7 @@ public class XMLBuilder {
      *
      * @throws XPathExpressionException
      * If the XPath is invalid, or if does not resolve to at least one
-     * {@link Node.ELEMENT_NODE}.
+     * {@link Node#ELEMENT_NODE}.
      */
     public Object xpathQuery(String xpath, QName type)
         throws XPathExpressionException
@@ -350,7 +350,7 @@ public class XMLBuilder {
      *
      * @throws XPathExpressionException
      * If the XPath is invalid, or if does not resolve to at least one
-     * {@link Node.ELEMENT_NODE}.
+     * {@link Node#ELEMENT_NODE}.
      */
     public XMLBuilder xpathFind(String xpath, NamespaceContext nsContext)
         throws XPathExpressionException
@@ -378,7 +378,7 @@ public class XMLBuilder {
      *
      * @throws XPathExpressionException
      * If the XPath is invalid, or if does not resolve to at least one
-     * {@link Node.ELEMENT_NODE}.
+     * {@link Node#ELEMENT_NODE}.
      */
     public XMLBuilder xpathFind(String xpath) throws XPathExpressionException {
         return xpathFind(xpath, null);
