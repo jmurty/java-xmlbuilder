@@ -217,7 +217,7 @@ public class XMLBuilder {
      * now containing the entire document tree provided.
      */
     public XMLBuilder importXMLBuilder(XMLBuilder builder) {
-        assertCurrentElementHasNoTextNodes();
+        assertElementHasNoTextNodes(this.xmlElement);
         Node importedNode = getDocument().importNode(
             builder.root().getElement(), true);
         this.xmlElement.appendChild(importedNode);
@@ -461,12 +461,70 @@ public class XMLBuilder {
      * contains a text node value.
      */
     public XMLBuilder element(String name, String namespaceURI) {
-        assertCurrentElementHasNoTextNodes();
+        assertElementHasNoTextNodes(this.xmlElement);
         return new XMLBuilder(
             (namespaceURI == null
                 ? getDocument().createElement(name)
                 : getDocument().createElementNS(namespaceURI, name)),
             this.xmlElement);
+    }
+
+    /**
+     * Add a named XML element to the document as a sibling element
+     * that precedes the position of this builder node, and return the builder node
+     * representing the new child.
+     *
+     * When adding an element to a namespaced document, the new node will be
+     * assigned a namespace matching it's qualified name prefix (if any) or
+     * the document's default namespace. NOTE: If the element has a prefix that
+     * does not match any known namespaces, the element will be created
+     * without any namespace.
+     *
+     * @param name
+     * the name of the XML element.
+     *
+     * @return
+     * a builder node representing the new child.
+     *
+     * @throws IllegalStateException
+     * if you attempt to add a sibling element to a node where there are already
+     * one or more siblings that are text nodes.
+     */
+    public XMLBuilder elementBefore(String name) {
+        String prefix = getPrefixFromQualifiedName(name);
+        String namespaceURI = this.xmlElement.lookupNamespaceURI(prefix);
+        return elementBefore(name, namespaceURI);
+    }
+
+    /**
+     * Add a named and namespaced XML element to the document as a sibling element
+     * that precedes the position of this builder node, and return the builder node
+     * representing the new child.
+     *
+     * @param name
+     * the name of the XML element.
+     * @param namespaceURI
+     * a namespace URI
+     *
+     * @return
+     * a builder node representing the new child.
+     *
+     * @throws IllegalStateException
+     * if you attempt to add a sibling element to a node where there are already
+     * one or more siblings that are text nodes.
+     */
+    public XMLBuilder elementBefore(String name, String namespaceURI) {
+        Element parentElement = (Element) this.xmlElement.getParentNode();
+        assertElementHasNoTextNodes(parentElement);
+
+        Element newElement = (namespaceURI == null
+            ? getDocument().createElement(name)
+            : getDocument().createElementNS(namespaceURI, name));
+
+        // Insert new element before the current element
+        parentElement.insertBefore(newElement, this.xmlElement);
+        // Return a new builder node pointing at the new element
+        return new XMLBuilder(newElement, null);
     }
 
     /**
@@ -883,10 +941,10 @@ public class XMLBuilder {
      * @throws IllegalStateException
      * if the current element contains any child text nodes.
      */
-    protected void assertCurrentElementHasNoTextNodes() {
+    protected void assertElementHasNoTextNodes(Node anXmlElement) {
         // Ensure we don't create sub-elements in Elements that already have text node values.
         Node textNode = null;
-        NodeList childNodes = xmlElement.getChildNodes();
+        NodeList childNodes = anXmlElement.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             if (Element.TEXT_NODE == childNodes.item(i).getNodeType()) {
                 textNode = childNodes.item(i);
@@ -895,7 +953,7 @@ public class XMLBuilder {
         }
         if (textNode != null) {
             throw new IllegalStateException(
-                "Cannot add sub-element to element <" + xmlElement.getNodeName()
+                "Cannot add sub-element to element <" + anXmlElement.getNodeName()
                 + "> that already contains the Text node: " + textNode);
         }
     }

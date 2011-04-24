@@ -343,4 +343,45 @@ public class TestXmlBuilder extends TestCase {
         builder.element("undefined-prefix:ElementName");
     }
 
+    public void testElementBefore() throws ParserConfigurationException,
+        FactoryConfigurationError, TransformerException, XPathExpressionException,
+        SAXException, IOException
+    {
+        XMLBuilder builder = XMLBuilder
+            .create("TestDocument", "urn:default")
+                .namespace("custom", "urn:custom")
+                .elem("Before").up()
+                .elem("After");
+        NamespaceContextImpl context = builder.buildDocumentNamespaceContext();
+
+        // Ensure XML structure is correct before insert
+        assertEquals("<TestDocument xmlns=\"urn:default\" xmlns:custom=\"urn:custom\">"
+            + "<Before/><After/></TestDocument>", builder.asString());
+
+        InputSource testDocInputSource = new InputSource(new StringReader(builder.asString()));
+
+        // Insert an element before the "After" element, no explicit namespace (will use default)
+        XMLBuilder testDoc = XMLBuilder.parse(testDocInputSource)
+            .xpathFind("/:TestDocument/:After", context);
+        XMLBuilder insertedBuilder = testDoc.elementBefore("Inserted");
+        assertEquals("Inserted", insertedBuilder.getElement().getNodeName());
+        assertEquals("<TestDocument xmlns=\"urn:default\" xmlns:custom=\"urn:custom\">"
+            + "<Before/><Inserted/><After/></TestDocument>", testDoc.asString());
+
+        // Insert another element, this time with a custom namespace prefix
+        insertedBuilder = insertedBuilder.elementBefore("custom:InsertedAgain");
+        assertEquals("custom:InsertedAgain", insertedBuilder.getElement().getNodeName());
+        assertEquals("<TestDocument xmlns=\"urn:default\" xmlns:custom=\"urn:custom\">"
+            + "<Before/><custom:InsertedAgain/><Inserted/><After/></TestDocument>",
+            testDoc.asString());
+
+        // Insert another element, this time with a custom namespace ref
+        insertedBuilder = insertedBuilder.elementBefore("InsertedYetAgain", "urn:custom2");
+        assertEquals("InsertedYetAgain", insertedBuilder.getElement().getNodeName());
+        assertEquals("<TestDocument xmlns=\"urn:default\" xmlns:custom=\"urn:custom\">"
+            + "<Before/><InsertedYetAgain xmlns=\"urn:custom2\"/><custom:InsertedAgain/>"
+            + "<Inserted/><After/></TestDocument>",
+            testDoc.asString());
+    }
+
 }
