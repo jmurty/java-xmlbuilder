@@ -3,7 +3,7 @@
   <groupId>com.jamesmurty.utils</groupId>
   <artifactId>java-xmlbuilder</artifactId>
   <packaging>jar</packaging>
-  <version>0.5-SNAPSHOT</version>
+  <version>0.5</version>
   <name>java-xmlbuilder</name>
   <description>XML Builder is a utility that creates simple XML documents using relatively sparse Java code</description>
   <url>http://code.google.com/p/java-xmlbuilder/</url>
@@ -15,9 +15,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:svn:http://java-xmlbuilder.googlecode.com/svn/trunk/</connection>
-    <developerConnection>scm:svn:https://java-xmlbuilder.googlecode.com/svn/trunk/</developerConnection>
-    <url>http://java-xmlbuilder.googlecode.com/svn/trunk/</url>
+    <connection>scm:svn:http://java-xmlbuilder.googlecode.com/svn/tags/java-xmlbuilder-0.5</connection>
+    <developerConnection>scm:svn:https://java-xmlbuilder.googlecode.com/svn/tags/java-xmlbuilder-0.5</developerConnection>
+    <url>http://java-xmlbuilder.googlecode.com/svn/tags/java-xmlbuilder-0.5</url>
   </scm>
   <developers>
     <developer>
