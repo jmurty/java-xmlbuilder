@@ -49,6 +49,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -579,6 +580,29 @@ public class XMLBuilder {
     }
 
     /**
+     * Add or replace the text value of an element represented by this builder
+     * node, and return the node representing the element to which the text
+     * was added (<strong>not</strong> the new text node).
+     *
+     * @param value
+     * the text value to set or add to the element.
+     * @param replaceText
+     * if True any existing text content of the node is replaced with the
+     * given text value, if the given value is appended to any existing text.
+     *
+     * @return
+     * the builder node representing the element to which the text was added.
+     */
+    public XMLBuilder text(String value, boolean replaceText) {
+        if (replaceText) {
+            xmlElement.setTextContent(value);
+        } else {
+            xmlElement.appendChild(getDocument().createTextNode(value));
+        }
+        return this;
+    }
+
+    /**
      * Add a text value to the element represented by this builder node, and
      * return the node representing the element to which the text
      * was added (<strong>not</strong> the new text node).
@@ -590,12 +614,11 @@ public class XMLBuilder {
      * the builder node representing the element to which the text was added.
      */
     public XMLBuilder text(String value) {
-        xmlElement.appendChild(getDocument().createTextNode(value));
-        return this;
+        return this.text(value, false);
     }
 
     /**
-     * Synonmy for {@link #text(String)}.
+     * Synonym for {@link #text(String)}.
      *
      * @param value
      * the text value to add to the element.

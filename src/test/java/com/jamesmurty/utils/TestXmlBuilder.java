@@ -384,4 +384,24 @@ public class TestXmlBuilder extends TestCase {
             testDoc.asString());
     }
 
+    public void testTextNodes()
+        throws ParserConfigurationException, FactoryConfigurationError, XPathExpressionException
+    {
+        XMLBuilder builder = XMLBuilder
+            .create("TestDocument")
+                .elem("TextElement")
+                    .text("Initial");
+
+        XMLBuilder textElementBuilder = builder.xpathFind("//TextElement");
+        assertEquals("Initial", textElementBuilder.getElement().getTextContent());
+
+        // By default, text methods append value to existing text
+        textElementBuilder.text("Appended");
+        assertEquals("InitialAppended", textElementBuilder.getElement().getTextContent());
+
+        // Use boolean flag to replace text nodes with a new value
+        textElementBuilder.text("Replacement", true);
+        assertEquals("Replacement", textElementBuilder.getElement().getTextContent());
+    }
+
 }
