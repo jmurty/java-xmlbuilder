@@ -15,6 +15,7 @@ import javax.xml.xpath.XPathExpressionException;
 import junit.framework.TestCase;
 import net.iharder.base64.Base64;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -402,6 +403,28 @@ public class TestXmlBuilder extends TestCase {
         // Use boolean flag to replace text nodes with a new value
         textElementBuilder.text("Replacement", true);
         assertEquals("Replacement", textElementBuilder.getElement().getTextContent());
+    }
+
+    public void testProcessingInstructionNodes() throws Exception {
+        // Add instruction to root document element node (usual append-in-node behaviour)
+        XMLBuilder builder = XMLBuilder
+            .create("TestDocument").instruction("test", "data");
+        assertEquals("<TestDocument><?test data?></TestDocument>", builder.asString());
+
+        // Add instruction after the root document element (not within it)
+        builder = XMLBuilder.create("TestDocument3").document().instruction("test", "data");
+        assertEquals("<TestDocument3/><?test data?>\n", builder.asString());
+
+        // Insert instruction as first node of the root document
+        builder = XMLBuilder.create("TestDocument3").insertInstruction("test", "data");
+        assertEquals("<?test data?>\n<TestDocument3/>", builder.asString());
+
+        // Insert instruction as first node of the root document, second example
+        builder = XMLBuilder.create("TestDocument4").elem("ChildElem")
+            .root().insertInstruction("test", "data");
+        assertEquals(
+            "<?test data?>\n<TestDocument4><ChildElem/></TestDocument4>",
+            builder.asString());
     }
 
 }

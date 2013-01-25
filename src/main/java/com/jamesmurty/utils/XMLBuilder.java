@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 James Murty (www.jamesmurty.com)
+ * Copyright 2008-2013 James Murty (www.jamesmurty.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,9 +88,9 @@ public class XMLBuilder {
     private Document xmlDocument = null;
 
     /**
-     * The underlying element represented by this builder node.
+     * The underlying node represented by this builder node.
      */
-    private Element xmlElement = null;
+    private Node xmlNode = null;
 
     private static boolean isNamespaceAware = true; // TODO: Make this configurable?
 
@@ -103,27 +103,30 @@ public class XMLBuilder {
      */
     protected XMLBuilder(Document xmlDocument) {
         this.xmlDocument = xmlDocument;
-        this.xmlElement = xmlDocument.getDocumentElement();
+        this.xmlNode = xmlDocument.getDocumentElement();
     }
 
     /**
-     * Construct a new builder object that wraps the given XML document
-     * and element element.
+     * Construct a new builder object that wraps the given XML document and node.
      * This constructor is for internal use only.
      *
-     * @param myElement
-     * the XML element that this builder node will wrap. This element may
+     * @param myNode
+     * the XML node that this builder node will wrap. This node may
      * be part of the XML document, or it may be a new element that is to be
      * added to the document.
-     * @param parentElement
+     * @param parentNode
      * If not null, the given myElement will be appended as child node of the
-     * parentElement node.
+     * parentNode node.
      */
-    protected XMLBuilder(Element myElement, Element parentElement) {
-        this.xmlElement = myElement;
-        this.xmlDocument = myElement.getOwnerDocument();
-        if (parentElement != null) {
-        	parentElement.appendChild(myElement);
+    protected XMLBuilder(Node myNode, Node parentNode) {
+        this.xmlNode = myNode;
+        if (myNode instanceof Document) {
+            this.xmlDocument = (Document) myNode;
+        } else {
+            this.xmlDocument = myNode.getOwnerDocument();
+        }
+        if (parentNode != null) {
+            parentNode.appendChild(myNode);
         }
     }
 
@@ -218,10 +221,10 @@ public class XMLBuilder {
      * now containing the entire document tree provided.
      */
     public XMLBuilder importXMLBuilder(XMLBuilder builder) {
-        assertElementHasNoTextNodes(this.xmlElement);
+        assertElementHasNoTextNodes(this.xmlNode);
         Node importedNode = getDocument().importNode(
             builder.root().getElement(), true);
-        this.xmlElement.appendChild(importedNode);
+        this.xmlNode.appendChild(importedNode);
         return this;
     }
 
@@ -236,17 +239,34 @@ public class XMLBuilder {
     		XMLBuilder other = (XMLBuilder) obj;
     		return
     			this.xmlDocument.equals(other.getDocument())
-    			&& this.xmlElement.equals(other.getElement());
+    			&& this.xmlNode.equals(other.getElement());
     	}
     	return false;
     }
 
     /**
      * @return
-     * the XML element wrapped by this builder node.
+     * the XML element wrapped by this builder node, or null if the builder node wraps the
+     * root Document node.
      */
     public Element getElement() {
-        return this.xmlElement;
+        if (this.xmlNode instanceof Element) {
+            return (Element) this.xmlNode;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * BEWARE: The builder returned by this method respresents a Document node, not
+     * an Element node as is usually the case, so attempts to use the attribute or
+     * namespace methods on this builder will likely fail.
+     *
+     * @return
+     * the builder node representing the root XML document.
+     */
+    public XMLBuilder document() {
+        return new XMLBuilder(getDocument(), null);
     }
 
     /**
@@ -300,7 +320,7 @@ public class XMLBuilder {
         }
         XPathExpression xpathExp = xPath.compile(xpath);
         try {
-            return xpathExp.evaluate(this.xmlElement, type);
+            return xpathExp.evaluate(this.xmlNode, type);
         } catch (IllegalArgumentException e) {
             // Thrown if item found does not match expected type
             return null;
@@ -360,9 +380,9 @@ public class XMLBuilder {
     	if (foundNode == null || foundNode.getNodeType() != Node.ELEMENT_NODE) {
     		throw new XPathExpressionException("XPath expression \""
 				+ xpath + "\" does not resolve to an Element in context "
-				+ this.xmlElement + ": " + foundNode);
+				+ this.xmlNode + ": " + foundNode);
     	}
-    	return new XMLBuilder((Element) foundNode, null);
+    	return new XMLBuilder(foundNode, null);
     }
 
     /**
@@ -407,7 +427,7 @@ public class XMLBuilder {
      */
     public XMLBuilder element(String name) {
         String prefix = getPrefixFromQualifiedName(name);
-        String namespaceURI = this.xmlElement.lookupNamespaceURI(prefix);
+        String namespaceURI = this.xmlNode.lookupNamespaceURI(prefix);
         return element(name, namespaceURI);
     }
 
@@ -462,12 +482,12 @@ public class XMLBuilder {
      * contains a text node value.
      */
     public XMLBuilder element(String name, String namespaceURI) {
-        assertElementHasNoTextNodes(this.xmlElement);
+        assertElementHasNoTextNodes(this.xmlNode);
         return new XMLBuilder(
             (namespaceURI == null
                 ? getDocument().createElement(name)
                 : getDocument().createElementNS(namespaceURI, name)),
-            this.xmlElement);
+            this.xmlNode);
     }
 
     /**
@@ -493,7 +513,7 @@ public class XMLBuilder {
      */
     public XMLBuilder elementBefore(String name) {
         String prefix = getPrefixFromQualifiedName(name);
-        String namespaceURI = this.xmlElement.lookupNamespaceURI(prefix);
+        String namespaceURI = this.xmlNode.lookupNamespaceURI(prefix);
         return elementBefore(name, namespaceURI);
     }
 
@@ -515,15 +535,15 @@ public class XMLBuilder {
      * one or more siblings that are text nodes.
      */
     public XMLBuilder elementBefore(String name, String namespaceURI) {
-        Element parentElement = (Element) this.xmlElement.getParentNode();
-        assertElementHasNoTextNodes(parentElement);
+        Node parentNode = this.xmlNode.getParentNode();
+        assertElementHasNoTextNodes(parentNode);
 
         Element newElement = (namespaceURI == null
             ? getDocument().createElement(name)
             : getDocument().createElementNS(namespaceURI, name));
 
         // Insert new element before the current element
-        parentElement.insertBefore(newElement, this.xmlElement);
+        parentNode.insertBefore(newElement, this.xmlNode);
         // Return a new builder node pointing at the new element
         return new XMLBuilder(newElement, null);
     }
@@ -543,7 +563,12 @@ public class XMLBuilder {
      * added.
      */
     public XMLBuilder attribute(String name, String value) {
-        xmlElement.setAttribute(name, value);
+        if (! (this.xmlNode instanceof Element)) {
+            throw new RuntimeException(
+                "Cannot add an attribute to non-Element underlying node: "
+                + this.xmlNode);
+        }
+        ((Element) xmlNode).setAttribute(name, value);
         return this;
     }
 
@@ -595,9 +620,9 @@ public class XMLBuilder {
      */
     public XMLBuilder text(String value, boolean replaceText) {
         if (replaceText) {
-            xmlElement.setTextContent(value);
+            xmlNode.setTextContent(value);
         } else {
-            xmlElement.appendChild(getDocument().createTextNode(value));
+            xmlNode.appendChild(getDocument().createTextNode(value));
         }
         return this;
     }
@@ -642,7 +667,7 @@ public class XMLBuilder {
      * the builder node representing the element to which the data was added.
      */
     public XMLBuilder cdata(String data) {
-        xmlElement.appendChild(
+        xmlNode.appendChild(
             getDocument().createCDATASection(data));
         return this;
     }
@@ -685,7 +710,7 @@ public class XMLBuilder {
      * the builder node representing the element to which the data was added.
      */
     public XMLBuilder cdata(byte[] data) {
-        xmlElement.appendChild(
+        xmlNode.appendChild(
             getDocument().createCDATASection(
                 Base64.encodeBytes(data, Base64.DONT_BREAK_LINES)));
         return this;
@@ -729,7 +754,7 @@ public class XMLBuilder {
      * the builder node representing the element to which the comment was added.
      */
     public XMLBuilder comment(String comment) {
-        xmlElement.appendChild(getDocument().createComment(comment));
+        xmlNode.appendChild(getDocument().createComment(comment));
         return this;
     }
 
@@ -774,7 +799,7 @@ public class XMLBuilder {
      * added.
      */
     public XMLBuilder instruction(String target, String data) {
-        xmlElement.appendChild(getDocument().createProcessingInstruction(target, data));
+        xmlNode.appendChild(getDocument().createProcessingInstruction(target, data));
         return this;
     }
 
@@ -811,6 +836,24 @@ public class XMLBuilder {
     }
 
     /**
+     * Insert an instruction before the element represented by this builder node, and
+     * return the node representing that same element
+     * (<strong>not</strong> the new instruction node).
+     *
+     * @param target
+     * the target value for the instruction.
+     * @param data
+     * the data value for the instruction
+     *
+     * @return
+     * the builder node representing the element before which the instruction was inserted.
+     */
+    public XMLBuilder insertInstruction(String target, String data) {
+        getDocument().insertBefore(getDocument().createProcessingInstruction(target, data), xmlNode);
+        return this;
+    }
+
+    /**
      * Add a reference to the element represented by this builder node, and
      * return the node representing the element to which the reference
      * was added (<strong>not</strong> the new reference node).
@@ -823,7 +866,7 @@ public class XMLBuilder {
      * added.
      */
     public XMLBuilder reference(String name) {
-        xmlElement.appendChild(getDocument().createEntityReference(name));
+        xmlNode.appendChild(getDocument().createEntityReference(name));
         return this;
     }
 
@@ -868,11 +911,16 @@ public class XMLBuilder {
      * the builder node representing the element to which the attribute was added.
      */
     public XMLBuilder namespace(String prefix, String namespaceURI) {
+        if (! (this.xmlNode instanceof Element)) {
+            throw new RuntimeException(
+                "Cannot add an attribute to non-Element underlying node: "
+                + this.xmlNode);
+        }
         if (prefix != null && prefix.length() > 0) {
-            xmlElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+            ((Element) xmlNode).setAttributeNS("http://www.w3.org/2000/xmlns/",
                 "xmlns:" + prefix, namespaceURI);
         } else {
-            xmlElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+            ((Element) xmlNode).setAttributeNS("http://www.w3.org/2000/xmlns/",
                 "xmlns", namespaceURI);
         }
         return this;
@@ -936,7 +984,7 @@ public class XMLBuilder {
      * reached before the n<em>th</em> parent is found.
      */
     public XMLBuilder up(int steps) {
-    	Node currNode = this.xmlElement;
+    	Node currNode = this.xmlNode;
         int stepCount = 0;
         while (currNode.getParentNode() != null && stepCount < steps) {
         	currNode = currNode.getParentNode();
@@ -945,7 +993,7 @@ public class XMLBuilder {
         if (currNode instanceof Document) {
             return new XMLBuilder((Document) currNode);
         } else {
-            return new XMLBuilder((Element) currNode, null);
+            return new XMLBuilder(currNode, null);
         }
     }
 
