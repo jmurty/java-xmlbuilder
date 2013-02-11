@@ -403,6 +403,22 @@ public class TestXmlBuilder extends TestCase {
         // Use boolean flag to replace text nodes with a new value
         textElementBuilder.text("Replacement", true);
         assertEquals("Replacement", textElementBuilder.getElement().getTextContent());
+
+        // Fail-fast if a null text value is provided.
+        try {
+            textElementBuilder.text(null);
+            fail("null text value should cause RuntimeException");
+        } catch (RuntimeException ex) {
+            assertEquals("Illegal null text value", ex.getMessage());
+        }
+
+        try {
+            textElementBuilder.text(null, true);
+            fail("null text value should cause RuntimeException");
+        } catch (RuntimeException ex) {
+            assertEquals("Illegal null text value", ex.getMessage());
+        }
+
     }
 
     public void testProcessingInstructionNodes() throws Exception {

@@ -619,6 +619,12 @@ public class XMLBuilder {
      * the builder node representing the element to which the text was added.
      */
     public XMLBuilder text(String value, boolean replaceText) {
+        // Issue 10: null text values cause exceptions on subsequent call to
+        // Transformer to render document, so we fail-fast here on bad data.
+        if (value == null) {
+            throw new RuntimeException("Illegal null text value");
+        }
+
         if (replaceText) {
             xmlNode.setTextContent(value);
         } else {
