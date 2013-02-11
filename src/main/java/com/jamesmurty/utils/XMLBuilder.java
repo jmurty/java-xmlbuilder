@@ -622,7 +622,7 @@ public class XMLBuilder {
         // Issue 10: null text values cause exceptions on subsequent call to
         // Transformer to render document, so we fail-fast here on bad data.
         if (value == null) {
-            throw new RuntimeException("Illegal null text value");
+            throw new IllegalArgumentException("Illegal null text value");
         }
 
         if (replaceText) {

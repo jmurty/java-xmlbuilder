@@ -407,15 +407,15 @@ public class TestXmlBuilder extends TestCase {
         // Fail-fast if a null text value is provided.
         try {
             textElementBuilder.text(null);
-            fail("null text value should cause RuntimeException");
-        } catch (RuntimeException ex) {
+            fail("null text value should cause IllegalArgumentException");
+        } catch (IllegalArgumentException ex) {
             assertEquals("Illegal null text value", ex.getMessage());
         }
 
         try {
             textElementBuilder.text(null, true);
-            fail("null text value should cause RuntimeException");
-        } catch (RuntimeException ex) {
+            fail("null text value should cause IllegalArgumentException");
+        } catch (IllegalArgumentException ex) {
             assertEquals("Illegal null text value", ex.getMessage());
         }
 
