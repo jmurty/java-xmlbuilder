@@ -180,6 +180,31 @@ public class TestXmlBuilder extends TestCase {
 			xmlAsString);
 	}
 
+	/**
+	 * Test for issue #11: https://code.google.com/p/java-xmlbuilder/issues/detail?id=11
+	 * @throws Exception
+	 */
+	public void testAddElementsInLoop() throws Exception {
+        XMLBuilder builder = XMLBuilder.create("DocRoot");
+        XMLBuilder parentBuilder = builder.element("Parent");
+
+        // Add set of elements to Parent using a loop...
+        for (int i = 1; i <= 10; i++) {
+            parentBuilder.elem("IntegerValue" + i).text("" + i);
+        }
+
+        // ...and confirm element set is within parent after a call to up()
+	    parentBuilder.up();
+
+	    assertEquals("Parent", parentBuilder.getElement().getNodeName());
+        assertEquals("DocRoot", builder.getElement().getNodeName());
+        assertEquals(1, builder.getElement().getChildNodes().getLength());
+        assertEquals("Parent", builder.getElement().getChildNodes().item(0).getNodeName());
+        assertEquals(10, parentBuilder.getElement().getChildNodes().getLength());
+        assertEquals("IntegerValue1", parentBuilder.getElement().getChildNodes().item(0).getNodeName());
+        assertEquals("1", parentBuilder.getElement().getChildNodes().item(0).getTextContent());
+	}
+
     public void testTraversalDuringBuild() throws ParserConfigurationException, SAXException,
         IOException, XPathExpressionException, TransformerException
     {
