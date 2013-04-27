@@ -454,7 +454,7 @@ public class TestXmlBuilder extends TestCase {
 
         // Add instruction after the root document element (not within it)
         builder = XMLBuilder.create("TestDocument3").document().instruction("test", "data");
-        assertEquals("<TestDocument3/><?test data?>\n", builder.asString());
+        assertEquals("<TestDocument3/><?test data?>", builder.asString().trim());
 
         // Insert instruction as first node of the root document
         builder = XMLBuilder.create("TestDocument3").insertInstruction("test", "data");
