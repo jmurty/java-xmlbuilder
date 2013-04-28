@@ -43,7 +43,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import net.iharder.base64.Base64;
+import net.iharder.Base64;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -718,7 +718,7 @@ public class XMLBuilder {
     public XMLBuilder cdata(byte[] data) {
         xmlNode.appendChild(
             getDocument().createCDATASection(
-                Base64.encodeBytes(data, Base64.DONT_BREAK_LINES)));
+                Base64.encodeBytes(data)));
         return this;
     }
 

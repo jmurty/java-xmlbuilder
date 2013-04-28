@@ -13,7 +13,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import junit.framework.TestCase;
-import net.iharder.base64.Base64;
+import net.iharder.Base64;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -258,7 +258,8 @@ public class TestXmlBuilder extends TestCase {
     }
 
     public void testCDataNodes() throws ParserConfigurationException,
-        FactoryConfigurationError, UnsupportedEncodingException, XPathExpressionException
+        FactoryConfigurationError, UnsupportedEncodingException,
+        XPathExpressionException, IOException
     {
         String text = "Text data -- left as it is";
         String textForBytes = "Byte data is automatically base64-encoded";
