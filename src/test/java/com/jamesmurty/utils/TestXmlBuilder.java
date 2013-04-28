@@ -13,8 +13,9 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import junit.framework.TestCase;
-import net.iharder.base64.Base64;
+import net.iharder.Base64;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -179,6 +180,31 @@ public class TestXmlBuilder extends TestCase {
 			xmlAsString);
 	}
 
+	/**
+	 * Test for issue #11: https://code.google.com/p/java-xmlbuilder/issues/detail?id=11
+	 * @throws Exception
+	 */
+	public void testAddElementsInLoop() throws Exception {
+        XMLBuilder builder = XMLBuilder.create("DocRoot");
+        XMLBuilder parentBuilder = builder.element("Parent");
+
+        // Add set of elements to Parent using a loop...
+        for (int i = 1; i <= 10; i++) {
+            parentBuilder.elem("IntegerValue" + i).text("" + i);
+        }
+
+        // ...and confirm element set is within parent after a call to up()
+	    parentBuilder.up();
+
+	    assertEquals("Parent", parentBuilder.getElement().getNodeName());
+        assertEquals("DocRoot", builder.getElement().getNodeName());
+        assertEquals(1, builder.getElement().getChildNodes().getLength());
+        assertEquals("Parent", builder.getElement().getChildNodes().item(0).getNodeName());
+        assertEquals(10, parentBuilder.getElement().getChildNodes().getLength());
+        assertEquals("IntegerValue1", parentBuilder.getElement().getChildNodes().item(0).getNodeName());
+        assertEquals("1", parentBuilder.getElement().getChildNodes().item(0).getTextContent());
+	}
+
     public void testTraversalDuringBuild() throws ParserConfigurationException, SAXException,
         IOException, XPathExpressionException, TransformerException
     {
@@ -232,7 +258,8 @@ public class TestXmlBuilder extends TestCase {
     }
 
     public void testCDataNodes() throws ParserConfigurationException,
-        FactoryConfigurationError, UnsupportedEncodingException, XPathExpressionException
+        FactoryConfigurationError, UnsupportedEncodingException,
+        XPathExpressionException, IOException
     {
         String text = "Text data -- left as it is";
         String textForBytes = "Byte data is automatically base64-encoded";
@@ -402,6 +429,44 @@ public class TestXmlBuilder extends TestCase {
         // Use boolean flag to replace text nodes with a new value
         textElementBuilder.text("Replacement", true);
         assertEquals("Replacement", textElementBuilder.getElement().getTextContent());
+
+        // Fail-fast if a null text value is provided.
+        try {
+            textElementBuilder.text(null);
+            fail("null text value should cause IllegalArgumentException");
+        } catch (IllegalArgumentException ex) {
+            assertEquals("Illegal null text value", ex.getMessage());
+        }
+
+        try {
+            textElementBuilder.text(null, true);
+            fail("null text value should cause IllegalArgumentException");
+        } catch (IllegalArgumentException ex) {
+            assertEquals("Illegal null text value", ex.getMessage());
+        }
+
+    }
+
+    public void testProcessingInstructionNodes() throws Exception {
+        // Add instruction to root document element node (usual append-in-node behaviour)
+        XMLBuilder builder = XMLBuilder
+            .create("TestDocument").instruction("test", "data");
+        assertEquals("<TestDocument><?test data?></TestDocument>", builder.asString());
+
+        // Add instruction after the root document element (not within it)
+        builder = XMLBuilder.create("TestDocument3").document().instruction("test", "data");
+        assertEquals("<TestDocument3/><?test data?>", builder.asString().trim());
+
+        // Insert instruction as first node of the root document
+        builder = XMLBuilder.create("TestDocument3").insertInstruction("test", "data");
+        assertEquals("<?test data?>\n<TestDocument3/>", builder.asString());
+
+        // Insert instruction as first node of the root document, second example
+        builder = XMLBuilder.create("TestDocument4").elem("ChildElem")
+            .root().insertInstruction("test", "data");
+        assertEquals(
+            "<?test data?>\n<TestDocument4><ChildElem/></TestDocument4>",
+            builder.asString());
     }
 
 }
