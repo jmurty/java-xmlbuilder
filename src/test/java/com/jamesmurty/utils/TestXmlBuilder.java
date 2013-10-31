@@ -180,6 +180,15 @@ public class TestXmlBuilder extends TestCase {
 			xmlAsString);
 	}
 
+	public void testSimpleXpath() throws Exception {
+	    String xmlDoc = "<template_objects><report_objects/></template_objects>";
+	    XMLBuilder builder = XMLBuilder.parse(
+            new InputSource(new StringReader(xmlDoc)));
+	    XMLBuilder builderNode = builder.xpathFind("report_objects");
+	    assertTrue("report_objects".equals(builderNode.getElement().getNodeName()));
+	    assertTrue("<report_objects/>".equals(builderNode.elementAsString()));
+	}
+
 	/**
 	 * Test for issue #11: https://code.google.com/p/java-xmlbuilder/issues/detail?id=11
 	 * @throws Exception
@@ -467,6 +476,36 @@ public class TestXmlBuilder extends TestCase {
         assertEquals(
             "<?test data?>\n<TestDocument4><ChildElem/></TestDocument4>",
             builder.asString());
+    }
+
+    /**
+     * Test for strange issue raised by user on comments form where OutputKeys.STANDALONE setting
+     * in transformer is ignored.
+     *
+     * @throws Exception
+     */
+    public void testSetStandaloneToYes() throws Exception {
+        String xmlDoc = "<RootNode><InnerNode/></RootNode>";
+        XMLBuilder builder = XMLBuilder.parse(
+            new InputSource(new StringReader(xmlDoc)));
+
+        // Basic output settings
+        Properties outputProperties = new Properties();
+        outputProperties.put(javax.xml.transform.OutputKeys.VERSION, "1.0");
+        outputProperties.put(javax.xml.transform.OutputKeys.METHOD, "xml");
+        outputProperties.put(javax.xml.transform.OutputKeys.ENCODING, "UTF-8");
+
+        // Use Document@setXmlStandalone(true) to ensure OutputKeys.STANDALONE is respected.
+        builder.getDocument().setXmlStandalone(true);
+        outputProperties.put(javax.xml.transform.OutputKeys.STANDALONE, "yes");
+
+        /* Serialize builder document */
+        StringWriter writer = new StringWriter();
+        builder.toWriter(writer, outputProperties);
+
+        assertEquals(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" + xmlDoc,
+            writer.toString());
     }
 
 }
