@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -179,6 +180,27 @@ public class TestXmlBuilder extends TestCase {
 			EXAMPLE_XML_DOC_START + "<Location2 type=\"Testing\"/>" + EXAMPLE_XML_DOC_END,
 			xmlAsString);
 	}
+
+    public void testParseAndAmendDocWithWhitespaceNodes()
+        throws ParserConfigurationException, SAXException, IOException,
+        XPathExpressionException, TransformerException
+    {
+        // Parse example XML document and output with indenting, to add whitespace nodes
+        Properties outputProperties = new Properties();
+        outputProperties.put(OutputKeys.INDENT, "yes");
+        outputProperties.put("{http://xml.apache.org/xslt}indent-amount", "2");
+        String xmlWithWhitespaceNodes =
+            XMLBuilder.parse(EXAMPLE_XML_DOC).asString(outputProperties);
+
+        // Re-parse document that now has whitespace nodes
+        XMLBuilder builder = XMLBuilder.parse(xmlWithWhitespaceNodes);
+
+        // Ensure we can add a node to the document (re issue #17)
+        builder.xpathFind("//JetS3t")
+            .elem("AnotherLocation").attr("type", "Testing");
+        String xmlWithAmendments = builder.asString(outputProperties);
+        assertTrue(xmlWithAmendments.contains("<AnotherLocation type=\"Testing\"/>"));
+    }
 
 	public void testSimpleXpath() throws Exception {
 	    String xmlDoc = "<template_objects><report_objects/></template_objects>";

@@ -268,7 +268,7 @@ public class XMLBuilder {
      * now containing the entire document tree provided.
      */
     public XMLBuilder importXMLBuilder(XMLBuilder builder) {
-        assertElementHasNoTextNodes(this.xmlNode);
+        assertElementContainsNoOrWhitespaceOnlyTextNodes(this.xmlNode);
         Node importedNode = getDocument().importNode(
             builder.root().getElement(), true);
         this.xmlNode.appendChild(importedNode);
@@ -529,7 +529,7 @@ public class XMLBuilder {
      * contains a text node value.
      */
     public XMLBuilder element(String name, String namespaceURI) {
-        assertElementHasNoTextNodes(this.xmlNode);
+        assertElementContainsNoOrWhitespaceOnlyTextNodes(this.xmlNode);
         return new XMLBuilder(
             (namespaceURI == null
                 ? getDocument().createElement(name)
@@ -583,7 +583,7 @@ public class XMLBuilder {
      */
     public XMLBuilder elementBefore(String name, String namespaceURI) {
         Node parentNode = this.xmlNode.getParentNode();
-        assertElementHasNoTextNodes(parentNode);
+        assertElementContainsNoOrWhitespaceOnlyTextNodes(parentNode);
 
         Element newElement = (namespaceURI == null
             ? getDocument().createElement(name)
@@ -1063,22 +1063,29 @@ public class XMLBuilder {
 
     /**
      * @throws IllegalStateException
-     * if the current element contains any child text nodes.
+     * if the current element contains any child text nodes that aren't pure whitespace.
+     * We allow whitespace so parsed XML documents containing indenting or pretty-printing
+     * can still be amended, per issue #17.
      */
-    protected void assertElementHasNoTextNodes(Node anXmlElement) {
-        // Ensure we don't create sub-elements in Elements that already have text node values.
-        Node textNode = null;
+    protected void assertElementContainsNoOrWhitespaceOnlyTextNodes(Node anXmlElement) {
+        Node textNodeWithNonWhitespace = null;
         NodeList childNodes = anXmlElement.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             if (Element.TEXT_NODE == childNodes.item(i).getNodeType()) {
-                textNode = childNodes.item(i);
+                Node textNode = childNodes.item(i);
+                String textWithoutWhitespace =
+                    textNode.getTextContent().replaceAll("\\s", "");
+                if (textWithoutWhitespace.length() > 0) {
+                    textNodeWithNonWhitespace = textNode;
                 break;
             }
         }
-        if (textNode != null) {
+        }
+        if (textNodeWithNonWhitespace != null) {
             throw new IllegalStateException(
                 "Cannot add sub-element to element <" + anXmlElement.getNodeName()
-                + "> that already contains the Text node: " + textNode);
+                + "> that contains a Text node that isn't purely whitespace: "
+                + textNodeWithNonWhitespace);
         }
     }
 
