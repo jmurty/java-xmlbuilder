@@ -11,6 +11,11 @@ coding with [JAXP](http://jaxp.dev.java.net/).
 Internally, XML Builder uses JAXP to build a standard W3C Document model (DOM) that you can easily
 export as a string, or access and manipulate further if you have special requirements.
 
+License
+-------
+
+[Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
 Quick Example
 -------------
 
@@ -50,7 +55,8 @@ Getting Started
 See further example usage below and the 
 [JavaDoc documentation](http://s3.jamesmurty.com/java-xmlbuilder/index.html).
 
-Download a Jar file containing the latest version from the [http://code.google.com/p/java-xmlbuilder/downloads/list download list] page.
+Download a Jar file containing the latest version from the
+[downloads](http://code.google.com/p/java-xmlbuilder/downloads/list) page.
 
 Maven users can add this project as a dependency with the following additions to a POM.xml file:
 
@@ -71,7 +77,12 @@ Kudos
 
 Thanks to Robert Harder for his excellent Base64 encoder implementation: http://iharder.net/base64
 
+Code Repository History
+-----------------------
 
+This project was previously hosted on Google Code at https://code.google.com/p/java-xmlbuilder/
+
+Please refer to this old location for historical issue reports and user questions. 
 
 
 How to use the XMLBuilder
