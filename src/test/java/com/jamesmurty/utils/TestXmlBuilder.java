@@ -202,6 +202,28 @@ public class TestXmlBuilder extends TestCase {
         assertTrue(xmlWithAmendments.contains("<AnotherLocation type=\"Testing\"/>"));
     }
 
+    public void testStripWhitespaceNodesFromDocument()
+        throws ParserConfigurationException, SAXException, IOException,
+        XPathExpressionException, TransformerException
+    {
+        // Parse example XML document and output with indenting, to add whitespace nodes
+        Properties outputProperties = new Properties();
+        outputProperties.put(OutputKeys.INDENT, "yes");
+        outputProperties.put("{http://xml.apache.org/xslt}indent-amount", "2");
+        String xmlWithWhitespaceNodes =
+            XMLBuilder.parse(EXAMPLE_XML_DOC).asString(outputProperties);
+
+        // Re-parse document that now has whitespace text nodes
+        XMLBuilder builder = XMLBuilder.parse(xmlWithWhitespaceNodes);
+        assertTrue(builder.asString().contains("\n"));
+        assertTrue(builder.asString().contains("  "));
+
+        // Strip whitespace nodes
+        builder.stripWhitespaceOnlyTextNodes();
+        assertFalse(builder.asString().contains("\n"));
+        assertFalse(builder.asString().contains("  "));
+    }
+
 	public void testSimpleXpath() throws Exception {
 	    String xmlDoc = "<template_objects><report_objects/></template_objects>";
 	    XMLBuilder builder = XMLBuilder.parse(xmlDoc);

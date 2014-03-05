@@ -257,6 +257,36 @@ public class XMLBuilder {
     }
 
     /**
+     * Find and delete from the underlying Document any text nodes that
+     * contain nothing but whitespace, such as newlines and tab or space
+     * characters used to indent or pretty-print an XML document.
+     *
+     * Uses approach I documented on StackOverflow:
+     * http://stackoverflow.com/a/979606/4970
+     *
+     * @return
+     * a builder node at the same location as before the operation.
+     * @throws XPathExpressionException
+     */
+    public XMLBuilder stripWhitespaceOnlyTextNodes()
+        throws XPathExpressionException
+    {
+        XPathFactory xpathFactory = XPathFactory.newInstance();
+        // XPath to find empty text nodes.
+        XPathExpression xpathExp = xpathFactory.newXPath().compile(
+            "//text()[normalize-space(.) = '']");
+        NodeList emptyTextNodes = (NodeList) xpathExp.evaluate(
+            this.getDocument(), XPathConstants.NODESET);
+
+        // Remove each empty text node from document.
+        for (int i = 0; i < emptyTextNodes.getLength(); i++) {
+            Node emptyTextNode = emptyTextNodes.item(i);
+            emptyTextNode.getParentNode().removeChild(emptyTextNode);
+        }
+        return this;
+    }
+
+    /**
      * Imports another XMLBuilder document into this document at the
      * current position. The entire document provided is imported.
      *
@@ -1077,9 +1107,9 @@ public class XMLBuilder {
                     textNode.getTextContent().replaceAll("\\s", "");
                 if (textWithoutWhitespace.length() > 0) {
                     textNodeWithNonWhitespace = textNode;
-                break;
+                    break;
+                }
             }
-        }
         }
         if (textNodeWithNonWhitespace != null) {
             throw new IllegalStateException(
