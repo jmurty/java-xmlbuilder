@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2013 James Murty (www.jamesmurty.com)
+ * Copyright 2008-2014 James Murty (www.jamesmurty.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@
  */
 package com.jamesmurty.utils;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Iterator;
@@ -207,6 +210,50 @@ public class XMLBuilder {
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document document = builder.parse(inputSource);
         return new XMLBuilder(document);
+    }
+
+    /**
+     * Construct a builder from an existing XML document string.
+     * The provided XML document will be parsed and an XMLBuilder
+     * object referencing the document's root element will be returned.
+     *
+     * @param xmlString
+     * an XML document string that will be parsed into a DOM.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     *
+     * @throws ParserConfigurationException
+     * @throws FactoryConfigurationError
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     */
+    public static XMLBuilder parse(String xmlString)
+        throws ParserConfigurationException, SAXException, IOException
+    {
+        return XMLBuilder.parse(new InputSource(new StringReader(xmlString)));
+    }
+
+    /**
+     * Construct a builder from an existing XML document file.
+     * The provided XML document will be parsed and an XMLBuilder
+     * object referencing the document's root element will be returned.
+     *
+     * @param xmlFile
+     * an XML document file that will be parsed into a DOM.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     *
+     * @throws ParserConfigurationException
+     * @throws FactoryConfigurationError
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     */
+    public static XMLBuilder parse(File xmlFile)
+        throws ParserConfigurationException, SAXException, IOException
+    {
+        return XMLBuilder.parse(new InputSource(new FileReader(xmlFile)));
     }
 
     /**

@@ -182,8 +182,7 @@ public class TestXmlBuilder extends TestCase {
 
 	public void testSimpleXpath() throws Exception {
 	    String xmlDoc = "<template_objects><report_objects/></template_objects>";
-	    XMLBuilder builder = XMLBuilder.parse(
-            new InputSource(new StringReader(xmlDoc)));
+	    XMLBuilder builder = XMLBuilder.parse(xmlDoc);
 	    XMLBuilder builderNode = builder.xpathFind("report_objects");
 	    assertTrue("report_objects".equals(builderNode.getElement().getNodeName()));
 	    assertTrue("<report_objects/>".equals(builderNode.elementAsString()));
@@ -394,10 +393,8 @@ public class TestXmlBuilder extends TestCase {
         assertEquals("<TestDocument xmlns=\"urn:default\" xmlns:custom=\"urn:custom\">"
             + "<Before/><After/></TestDocument>", builder.asString());
 
-        InputSource testDocInputSource = new InputSource(new StringReader(builder.asString()));
-
         // Insert an element before the "After" element, no explicit namespace (will use default)
-        XMLBuilder testDoc = XMLBuilder.parse(testDocInputSource)
+        XMLBuilder testDoc = XMLBuilder.parse(builder.asString())
             .xpathFind("/:TestDocument/:After", context);
         XMLBuilder insertedBuilder = testDoc.elementBefore("Inserted");
         assertEquals("Inserted", insertedBuilder.getElement().getNodeName());
