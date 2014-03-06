@@ -9,12 +9,12 @@ to use concatenated strings, and where you would rather not face the tedium and 
 coding with [JAXP](http://jaxp.dev.java.net/).
 
 Internally, XML Builder uses JAXP to build a standard W3C Document model (DOM) that you can easily
-export as a string, or access and manipulate further if you have special requirements.
+export as a string, or access directly to manipulate further if you have special requirements.
 
-License
--------
+### License
 
 [Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
 
 Quick Example
 -------------
@@ -76,14 +76,6 @@ Kudos
 -----
 
 Thanks to Robert Harder for his excellent Base64 encoder implementation: http://iharder.net/base64
-
-Code Repository History
------------------------
-
-This project was previously hosted on Google Code at https://code.google.com/p/java-xmlbuilder/
-
-Please refer to this old location for historical issue reports and user questions. 
-
 
 How to use the XMLBuilder
 -------------------------
@@ -323,3 +315,12 @@ To produce:
   </JetS3t>
 </Projects>
 ```
+
+Release History
+---------------
+
+See [CHANGES.md](https://github.com/jmurty/java-xmlbuilder/blob/master/README.md)
+
+This project was previously hosted on Google Code at
+[](https://code.google.com/p/java-xmlbuilder/). Please refer to this old
+location for historical issue reports and user questions.
