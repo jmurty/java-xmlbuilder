@@ -336,8 +336,9 @@ Release History
 ---------------
 
 See this project's version history in
-[CHANGES.md](https://github.com/jmurty/java-xmlbuilder/blob/master/README.md)
+[CHANGES.md](https://github.com/jmurty/java-xmlbuilder/blob/master/CHANGES.md)
 
 This project was previously hosted on Google Code at
-[](https://code.google.com/p/java-xmlbuilder/). Please refer to this old
-location for historical issue reports and user questions.
+[https://code.google.com/p/java-xmlbuilder/](https://code.google.com/p/java-xmlbuilder/).
+Please refer to this old location for historical issue reports and user
+questions.
