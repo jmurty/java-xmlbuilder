@@ -4,7 +4,7 @@ Release Notes for java-xmlbuilder
 Version 1.0 - 6 March 2014
 --------------------------
 
-Bumped version number from 0.6 to 1.0 to better reflect this project's age
+Jumped version number from 0.7 to 1.0 to better reflect this project's age
 and stability, as well as to celebrate the move to GitHub. 
 
 * Migrated project from 
