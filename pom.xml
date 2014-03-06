@@ -4,7 +4,7 @@
   <artifactId>java-xmlbuilder</artifactId>
   <packaging>jar</packaging>
 
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <name>java-xmlbuilder</name>
   <description>XML Builder is a utility that creates simple XML documents using relatively sparse Java code</description>
   <url>https://github.com/jmurty/java-xmlbuilder</url>
@@ -21,6 +21,7 @@
     <connection>scm:git:github.com/jmurty/java-xmlbuilder.git</connection>
     <developerConnection>scm:git:git@github.com:jmurty/java-xmlbuilder.git</developerConnection>
     <url>https://github.com/jmurty/java-xmlbuilder</url>
+    <tag>v1.0</tag>
   </scm>
   
   <developers>
