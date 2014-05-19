@@ -1,5 +1,7 @@
 package com.jamesmurty.utils;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -547,6 +549,42 @@ public class TestXmlBuilder extends TestCase {
         assertEquals(
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" + xmlDoc,
             writer.toString());
+    }
+
+    /**
+     * Test the {@link XMLBuilder#asString(Properties)} method output a document
+     * of the correct size when the document is moderately large, re issue
+     * #1 (on GitHub).
+     *
+     * @throws Exception
+     */
+    public void testModerateDocumentSizeAsString() throws Exception {
+        // Create a moderate document around 0.5 MB
+        long expectedByteSize = 505021;
+        XMLBuilder builder = XMLBuilder.create("RootNode");
+        for (int i = 0; i < 5000; i++) {
+            builder
+                .e("TreeRoot")
+                    .e("TreeTrunk")
+                        .e("TreeBranch")
+                            .e("TreeLeaf")
+                                .t("Some Aphids");
+
+        }
+        // Omit XML declaration, which will otherwise be included in file
+        // via #toWriter but not in string via #asString
+        Properties outputProperties = new Properties();
+        outputProperties.put(
+            javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
+        // Ensure XML as string has expected length...
+        String xmlString = builder.asString(outputProperties);
+        assertEquals(expectedByteSize, xmlString.length());
+        // ...and matches size of XML written to file
+        File f = File.createTempFile(
+            "java-xmlbuilder-testmoderatedocumentsizeasstring", ".xml");
+        builder.toWriter(new FileWriter(f), outputProperties);
+        assertEquals(expectedByteSize, f.length());
+        f.delete();
     }
 
 }
