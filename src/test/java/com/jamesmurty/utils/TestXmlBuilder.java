@@ -26,6 +26,8 @@ import org.xml.sax.SAXException;
 
 public class TestXmlBuilder extends TestCase {
 
+    public static final String NEWLINE = System.getProperty("line.separator");
+
 	public static final String EXAMPLE_XML_DOC_START =
 		"<Projects>" +
 		  "<java-xmlbuilder language=\"Java\" scm=\"SVN\">" +
@@ -217,12 +219,12 @@ public class TestXmlBuilder extends TestCase {
 
         // Re-parse document that now has whitespace text nodes
         XMLBuilder builder = XMLBuilder.parse(xmlWithWhitespaceNodes);
-        assertTrue(builder.asString().contains("\n"));
+        assertTrue(builder.asString().contains(NEWLINE));
         assertTrue(builder.asString().contains("  "));
 
         // Strip whitespace nodes
         builder.stripWhitespaceOnlyTextNodes();
-        assertFalse(builder.asString().contains("\n"));
+        assertFalse(builder.asString().contains(NEWLINE));
         assertFalse(builder.asString().contains("  "));
     }
 
@@ -511,13 +513,13 @@ public class TestXmlBuilder extends TestCase {
 
         // Insert instruction as first node of the root document
         builder = XMLBuilder.create("TestDocument3").insertInstruction("test", "data");
-        assertEquals("<?test data?>\n<TestDocument3/>", builder.asString());
+        assertEquals("<?test data?>" + NEWLINE + "<TestDocument3/>", builder.asString());
 
         // Insert instruction as first node of the root document, second example
         builder = XMLBuilder.create("TestDocument4").elem("ChildElem")
             .root().insertInstruction("test", "data");
         assertEquals(
-            "<?test data?>\n<TestDocument4><ChildElem/></TestDocument4>",
+            "<?test data?>" + NEWLINE + "<TestDocument4><ChildElem/></TestDocument4>",
             builder.asString());
     }
 
