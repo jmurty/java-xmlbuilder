@@ -511,14 +511,18 @@ public class TestXmlBuilder extends TestCase {
 
         // Insert instruction as first node of the root document
         builder = XMLBuilder.create("TestDocument3").insertInstruction("test", "data");
-        assertEquals("<?test data?>\n<TestDocument3/>", builder.asString());
+        assertEquals(
+            "<?test data?><TestDocument3/>",
+            // Remove newlines from XML as this differs across platforms
+            builder.asString().replace("\n", ""));
 
         // Insert instruction as first node of the root document, second example
         builder = XMLBuilder.create("TestDocument4").elem("ChildElem")
             .root().insertInstruction("test", "data");
         assertEquals(
-            "<?test data?>\n<TestDocument4><ChildElem/></TestDocument4>",
-            builder.asString());
+            "<?test data?><TestDocument4><ChildElem/></TestDocument4>",
+            // Remove newlines from XML as this differs across platforms
+            builder.asString().replace("\n", ""));
     }
 
     /**
