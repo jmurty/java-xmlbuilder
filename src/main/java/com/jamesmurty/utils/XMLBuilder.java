@@ -23,35 +23,17 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.Iterator;
-import java.util.Properties;
-import java.util.Map.Entry;
 
 import javax.xml.namespace.NamespaceContext;
-import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
-import net.iharder.Base64;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -78,23 +60,7 @@ import org.xml.sax.SAXException;
  *
  * @author James Murty
  */
-public class XMLBuilder {
-    /**
-     * A DOM Document that stores the underlying XML document operated on by
-     * XMLBuilder instances. This document object belongs to the root node
-     * of a document, and is shared by this node with all other XMLBuilder
-     * instances via the {@link #getDocument()} method.
-     * This instance variable must only be created once, by the root node for
-     * any given document.
-     */
-    private Document xmlDocument = null;
-
-    /**
-     * The underlying node represented by this builder node.
-     */
-    private Node xmlNode = null;
-
-    private static boolean isNamespaceAware = true; // TODO: Make this configurable?
+public class XMLBuilder extends BaseXMLBuilder {
 
     /**
      * Construct a new builder object that wraps the given XML document.
@@ -104,8 +70,7 @@ public class XMLBuilder {
      * an XML document that the builder will manage and manipulate.
      */
     protected XMLBuilder(Document xmlDocument) {
-        this.xmlDocument = xmlDocument;
-        this.xmlNode = xmlDocument.getDocumentElement();
+        super(xmlDocument);
     }
 
     /**
@@ -121,15 +86,7 @@ public class XMLBuilder {
      * parentNode node.
      */
     protected XMLBuilder(Node myNode, Node parentNode) {
-        this.xmlNode = myNode;
-        if (myNode instanceof Document) {
-            this.xmlDocument = (Document) myNode;
-        } else {
-            this.xmlDocument = myNode.getOwnerDocument();
-        }
-        if (parentNode != null) {
-            parentNode.appendChild(myNode);
-        }
+        super(myNode, parentNode);
     }
 
     /**
@@ -151,19 +108,7 @@ public class XMLBuilder {
     public static XMLBuilder create(String name, String namespaceURI)
         throws ParserConfigurationException, FactoryConfigurationError
     {
-        // Init DOM builder and Document.
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(isNamespaceAware);
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.newDocument();
-        Element rootElement = null;
-        if (namespaceURI != null && namespaceURI.length() > 0) {
-            rootElement = document.createElementNS(namespaceURI, name);
-        } else {
-            rootElement = document.createElement(name);
-        }
-        document.appendChild(rootElement);
-        return new XMLBuilder(document);
+        return new XMLBuilder(createDocumentImpl(name, namespaceURI));
     }
 
     /**
@@ -202,13 +147,9 @@ public class XMLBuilder {
      * @throws SAXException
      */
     public static XMLBuilder parse(InputSource inputSource)
-    	throws ParserConfigurationException, SAXException, IOException
+        throws ParserConfigurationException, SAXException, IOException
     {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(isNamespaceAware);
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.parse(inputSource);
-        return new XMLBuilder(document);
+        return new XMLBuilder(parseDocumentImpl(inputSource));
     }
 
     /**
@@ -267,21 +208,10 @@ public class XMLBuilder {
      * a builder node at the same location as before the operation.
      * @throws XPathExpressionException
      */
-    public XMLBuilder stripWhitespaceOnlyTextNodes()
+    public BaseXMLBuilder stripWhitespaceOnlyTextNodes()
         throws XPathExpressionException
     {
-        XPathFactory xpathFactory = XPathFactory.newInstance();
-        // XPath to find empty text nodes.
-        XPathExpression xpathExp = xpathFactory.newXPath().compile(
-            "//text()[normalize-space(.) = '']");
-        NodeList emptyTextNodes = (NodeList) xpathExp.evaluate(
-            this.getDocument(), XPathConstants.NODESET);
-
-        // Remove each empty text node from document.
-        for (int i = 0; i < emptyTextNodes.getLength(); i++) {
-            Node emptyTextNode = emptyTextNodes.item(i);
-            emptyTextNode.getParentNode().removeChild(emptyTextNode);
-        }
+        super.stripWhitespaceOnlyTextNodesImpl();
         return this;
     }
 
@@ -297,52 +227,8 @@ public class XMLBuilder {
      * now containing the entire document tree provided.
      */
     public XMLBuilder importXMLBuilder(XMLBuilder builder) {
-        assertElementContainsNoOrWhitespaceOnlyTextNodes(this.xmlNode);
-        Node importedNode = getDocument().importNode(
-            builder.root().getElement(), true);
-        this.xmlNode.appendChild(importedNode);
+        super.importXMLBuilderImpl(builder);
         return this;
-    }
-
-    /**
-     * @return
-     * true if the XML Document and Element objects wrapped by this
-     * builder are equal to the other's wrapped objects.
-     */
-    @Override
-    public boolean equals(Object obj) {
-    	if (obj != null && obj instanceof XMLBuilder) {
-    		XMLBuilder other = (XMLBuilder) obj;
-    		return
-    			this.xmlDocument.equals(other.getDocument())
-    			&& this.xmlNode.equals(other.getElement());
-    	}
-    	return false;
-    }
-
-    /**
-     * @return
-     * the XML element wrapped by this builder node, or null if the builder node wraps the
-     * root Document node.
-     */
-    public Element getElement() {
-        if (this.xmlNode instanceof Element) {
-            return (Element) this.xmlNode;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * BEWARE: The builder returned by this method respresents a Document node, not
-     * an Element node as is usually the case, so attempts to use the attribute or
-     * namespace methods on this builder will likely fail.
-     *
-     * @return
-     * the builder node representing the root XML document.
-     */
-    public XMLBuilder document() {
-        return new XMLBuilder(getDocument(), null);
     }
 
     /**
@@ -353,80 +239,6 @@ public class XMLBuilder {
      */
     public XMLBuilder root() {
         return new XMLBuilder(getDocument());
-    }
-
-    /**
-     * @return
-     * the XML document constructed by all builder nodes.
-     */
-    public Document getDocument() {
-    	return this.xmlDocument;
-    }
-
-    /**
-     * Return the result of evaluating an XPath query on the builder's DOM
-     * using the given namespace. Returns null if the query finds nothing,
-     * or finds a node that does not match the type specified by returnType.
-     *
-     * @param xpath
-     * an XPath expression
-     * @param type
-     * the type the XPath is expected to resolve to, e.g:
-     * {@link XPathConstants#NODE}, {@link XPathConstants#NODESET},
-     * {@link XPathConstants#STRING}.
-     * @param nsContext
-     * a mapping of prefixes to namespace URIs that allows the XPath expression
-     * to use namespaces, or null for a non-namespaced document.
-     *
-     * @return
-     * a builder node representing the first Element that matches the
-     * XPath expression.
-     *
-     * @throws XPathExpressionException
-     * If the XPath is invalid, or if does not resolve to at least one
-     * {@link Node#ELEMENT_NODE}.
-     */
-    public Object xpathQuery(String xpath, QName type, NamespaceContext nsContext)
-        throws XPathExpressionException
-    {
-        XPathFactory xpathFactory = XPathFactory.newInstance();
-        XPath xPath = xpathFactory.newXPath();
-        if (nsContext != null) {
-            xPath.setNamespaceContext(nsContext);
-        }
-        XPathExpression xpathExp = xPath.compile(xpath);
-        try {
-            return xpathExp.evaluate(this.xmlNode, type);
-        } catch (IllegalArgumentException e) {
-            // Thrown if item found does not match expected type
-            return null;
-        }
-    }
-
-    /**
-     * Return the result of evaluating an XPath query on the builder's DOM.
-     * Returns null if the query finds nothing,
-     * or finds a node that does not match the type specified by returnType.
-     *
-     * @param xpath
-     * an XPath expression
-     * @param type
-     * the type the XPath is expected to resolve to, e.g:
-     * {@link XPathConstants#NODE}, {@link XPathConstants#NODESET},
-     * {@link XPathConstants#STRING}
-     *
-     * @return
-     * a builder node representing the first Element that matches the
-     * XPath expression.
-     *
-     * @throws XPathExpressionException
-     * If the XPath is invalid, or if does not resolve to at least one
-     * {@link Node#ELEMENT_NODE}.
-     */
-    public Object xpathQuery(String xpath, QName type)
-        throws XPathExpressionException
-    {
-        return xpathQuery(xpath, type, null);
     }
 
     /**
@@ -452,13 +264,8 @@ public class XMLBuilder {
     public XMLBuilder xpathFind(String xpath, NamespaceContext nsContext)
         throws XPathExpressionException
     {
-    	Node foundNode = (Node) this.xpathQuery(xpath, XPathConstants.NODE, nsContext);
-    	if (foundNode == null || foundNode.getNodeType() != Node.ELEMENT_NODE) {
-    		throw new XPathExpressionException("XPath expression \""
-				+ xpath + "\" does not resolve to an Element in context "
-				+ this.xmlNode + ": " + foundNode);
-    	}
-    	return new XMLBuilder(foundNode, null);
+        Node foundNode = super.xpathFindImpl(xpath, nsContext);
+        return new XMLBuilder(foundNode, null);
     }
 
     /**
@@ -502,8 +309,7 @@ public class XMLBuilder {
      * contains a text node value.
      */
     public XMLBuilder element(String name) {
-        String prefix = getPrefixFromQualifiedName(name);
-        String namespaceURI = this.xmlNode.lookupNamespaceURI(prefix);
+        String namespaceURI = super.lookupNamespaceURIImpl(name);
         return element(name, namespaceURI);
     }
 
@@ -558,12 +364,8 @@ public class XMLBuilder {
      * contains a text node value.
      */
     public XMLBuilder element(String name, String namespaceURI) {
-        assertElementContainsNoOrWhitespaceOnlyTextNodes(this.xmlNode);
-        return new XMLBuilder(
-            (namespaceURI == null
-                ? getDocument().createElement(name)
-                : getDocument().createElementNS(namespaceURI, name)),
-            this.xmlNode);
+        Element elem = super.elementImpl(name, namespaceURI);
+        return new XMLBuilder(elem, this.getElement());
     }
 
     /**
@@ -588,9 +390,8 @@ public class XMLBuilder {
      * one or more siblings that are text nodes.
      */
     public XMLBuilder elementBefore(String name) {
-        String prefix = getPrefixFromQualifiedName(name);
-        String namespaceURI = this.xmlNode.lookupNamespaceURI(prefix);
-        return elementBefore(name, namespaceURI);
+        Element newElement = super.elementBeforeImpl(name);
+        return new XMLBuilder(newElement, null);
     }
 
     /**
@@ -611,16 +412,7 @@ public class XMLBuilder {
      * one or more siblings that are text nodes.
      */
     public XMLBuilder elementBefore(String name, String namespaceURI) {
-        Node parentNode = this.xmlNode.getParentNode();
-        assertElementContainsNoOrWhitespaceOnlyTextNodes(parentNode);
-
-        Element newElement = (namespaceURI == null
-            ? getDocument().createElement(name)
-            : getDocument().createElementNS(namespaceURI, name));
-
-        // Insert new element before the current element
-        parentNode.insertBefore(newElement, this.xmlNode);
-        // Return a new builder node pointing at the new element
+        Element newElement = super.elementBeforeImpl(name, namespaceURI);
         return new XMLBuilder(newElement, null);
     }
 
@@ -639,12 +431,7 @@ public class XMLBuilder {
      * added.
      */
     public XMLBuilder attribute(String name, String value) {
-        if (! (this.xmlNode instanceof Element)) {
-            throw new RuntimeException(
-                "Cannot add an attribute to non-Element underlying node: "
-                + this.xmlNode);
-        }
-        ((Element) xmlNode).setAttribute(name, value);
+        super.attributeImpl(name, value);
         return this;
     }
 
@@ -680,6 +467,7 @@ public class XMLBuilder {
         return attribute(name, value);
     }
 
+
     /**
      * Add or replace the text value of an element represented by this builder
      * node, and return the node representing the element to which the text
@@ -695,17 +483,7 @@ public class XMLBuilder {
      * the builder node representing the element to which the text was added.
      */
     public XMLBuilder text(String value, boolean replaceText) {
-        // Issue 10: null text values cause exceptions on subsequent call to
-        // Transformer to render document, so we fail-fast here on bad data.
-        if (value == null) {
-            throw new IllegalArgumentException("Illegal null text value");
-        }
-
-        if (replaceText) {
-            xmlNode.setTextContent(value);
-        } else {
-            xmlNode.appendChild(getDocument().createTextNode(value));
-        }
+        super.textImpl(value, replaceText);
         return this;
     }
 
@@ -749,8 +527,7 @@ public class XMLBuilder {
      * the builder node representing the element to which the data was added.
      */
     public XMLBuilder cdata(String data) {
-        xmlNode.appendChild(
-            getDocument().createCDATASection(data));
+        super.cdataImpl(data);
         return this;
     }
 
@@ -792,9 +569,7 @@ public class XMLBuilder {
      * the builder node representing the element to which the data was added.
      */
     public XMLBuilder cdata(byte[] data) {
-        xmlNode.appendChild(
-            getDocument().createCDATASection(
-                Base64.encodeBytes(data)));
+        super.cdataImpl(data);
         return this;
     }
 
@@ -836,7 +611,7 @@ public class XMLBuilder {
      * the builder node representing the element to which the comment was added.
      */
     public XMLBuilder comment(String comment) {
-        xmlNode.appendChild(getDocument().createComment(comment));
+        super.commentImpl(comment);
         return this;
     }
 
@@ -881,7 +656,7 @@ public class XMLBuilder {
      * added.
      */
     public XMLBuilder instruction(String target, String data) {
-        xmlNode.appendChild(getDocument().createProcessingInstruction(target, data));
+        super.instructionImpl(target, data);
         return this;
     }
 
@@ -918,8 +693,8 @@ public class XMLBuilder {
     }
 
     /**
-     * Insert an instruction before the element represented by this builder node, and
-     * return the node representing that same element
+     * Insert an instruction before the element represented by this builder node,
+     * and return the node representing that same element
      * (<strong>not</strong> the new instruction node).
      *
      * @param target
@@ -931,7 +706,7 @@ public class XMLBuilder {
      * the builder node representing the element before which the instruction was inserted.
      */
     public XMLBuilder insertInstruction(String target, String data) {
-        getDocument().insertBefore(getDocument().createProcessingInstruction(target, data), xmlNode);
+        super.insertInstructionImpl(target, data);
         return this;
     }
 
@@ -948,7 +723,7 @@ public class XMLBuilder {
      * added.
      */
     public XMLBuilder reference(String name) {
-        xmlNode.appendChild(getDocument().createEntityReference(name));
+        super.referenceImpl(name);
         return this;
     }
 
@@ -993,18 +768,7 @@ public class XMLBuilder {
      * the builder node representing the element to which the attribute was added.
      */
     public XMLBuilder namespace(String prefix, String namespaceURI) {
-        if (! (this.xmlNode instanceof Element)) {
-            throw new RuntimeException(
-                "Cannot add an attribute to non-Element underlying node: "
-                + this.xmlNode);
-        }
-        if (prefix != null && prefix.length() > 0) {
-            ((Element) xmlNode).setAttributeNS("http://www.w3.org/2000/xmlns/",
-                "xmlns:" + prefix, namespaceURI);
-        } else {
-            ((Element) xmlNode).setAttributeNS("http://www.w3.org/2000/xmlns/",
-                "xmlns", namespaceURI);
-        }
+        super.namespaceImpl(prefix, namespaceURI);
         return this;
     }
 
@@ -1066,12 +830,7 @@ public class XMLBuilder {
      * reached before the n<em>th</em> parent is found.
      */
     public XMLBuilder up(int steps) {
-    	Node currNode = this.xmlNode;
-        int stepCount = 0;
-        while (currNode.getParentNode() != null && stepCount < steps) {
-        	currNode = currNode.getParentNode();
-            stepCount++;
-        }
+        Node currNode = super.upImpl(steps);
         if (currNode instanceof Document) {
             return new XMLBuilder((Document) currNode);
         } else {
@@ -1091,194 +850,15 @@ public class XMLBuilder {
     }
 
     /**
-     * @throws IllegalStateException
-     * if the current element contains any child text nodes that aren't pure whitespace.
-     * We allow whitespace so parsed XML documents containing indenting or pretty-printing
-     * can still be amended, per issue #17.
-     */
-    protected void assertElementContainsNoOrWhitespaceOnlyTextNodes(Node anXmlElement) {
-        Node textNodeWithNonWhitespace = null;
-        NodeList childNodes = anXmlElement.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            if (Element.TEXT_NODE == childNodes.item(i).getNodeType()) {
-                Node textNode = childNodes.item(i);
-                String textWithoutWhitespace =
-                    textNode.getTextContent().replaceAll("\\s", "");
-                if (textWithoutWhitespace.length() > 0) {
-                    textNodeWithNonWhitespace = textNode;
-                    break;
-                }
-            }
-        }
-        if (textNodeWithNonWhitespace != null) {
-            throw new IllegalStateException(
-                "Cannot add sub-element to element <" + anXmlElement.getNodeName()
-                + "> that contains a Text node that isn't purely whitespace: "
-                + textNodeWithNonWhitespace);
-        }
-    }
-
-    /**
-     * Serialize either the specific Element wrapped by this XMLBuilder, or its entire
-     * XML document, to the given writer using the default {@link TransformerFactory}
-     * and {@link Transformer} classes.
-     * If output options are provided, these options are provided to the
-     * {@link Transformer} serializer.
-     *
-     * @param wholeDocument
-     * if true the whole XML document (i.e. the document root) is serialized,
-     * if false just the current Element and its descendants are serialized.
-     * @param writer
-     * a writer to which the serialized document is written.
-     * @param outputProperties
-     * settings for the {@link Transformer} serializer. This parameter may be
-     * null or an empty Properties object, in which case the default output
-     * properties will be applied.
-     *
-     * @throws TransformerException
-     */
-    public void toWriter(boolean wholeDocument, Writer writer, Properties outputProperties)
-        throws TransformerException
-    {
-        StreamResult streamResult = new StreamResult(writer);
-
-        DOMSource domSource = null;
-        if (wholeDocument) {
-            domSource = new DOMSource(getDocument());
-        } else {
-            domSource = new DOMSource(getElement());
-        }
-
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer serializer = tf.newTransformer();
-
-        if (outputProperties != null) {
-            Iterator iter = outputProperties.entrySet().iterator();
-            while (iter.hasNext()) {
-                Entry entry = (Entry) iter.next();
-                serializer.setOutputProperty((String) entry.getKey(), (String) entry.getValue());
-            }
-        }
-        serializer.transform(domSource, streamResult);
-    }
-
-    /**
-     * Serialize the XML document to the given writer using the default
-     * {@link TransformerFactory} and {@link Transformer} classes. If output
-     * options are provided, these options are provided to the
-     * {@link Transformer} serializer.
-     *
-     * @param writer
-     * a writer to which the serialized document is written.
-     * @param outputProperties
-     * settings for the {@link Transformer} serializer. This parameter may be
-     * null or an empty Properties object, in which case the default output
-     * properties will be applied.
-     *
-     * @throws TransformerException
-     */
-    public void toWriter(Writer writer, Properties outputProperties)
-        throws TransformerException
-    {
-        this.toWriter(true, writer, outputProperties);
-    }
-
-    /**
-     * Serialize the XML document to a string by delegating to the
-     * {@link #toWriter(Writer, Properties)} method. If output options are
-     * provided, these options are provided to the {@link Transformer}
-     * serializer.
-     *
-     * @param outputProperties
-     * settings for the {@link Transformer} serializer. This parameter may be
-     * null or an empty Properties object, in which case the default output
-     * properties will be applied.
+     * BEWARE: The builder returned by this method represents a Document node, not
+     * an Element node as is usually the case, so attempts to use the attribute or
+     * namespace methods on this builder will likely fail.
      *
      * @return
-     * the XML document as a string
-     *
-     * @throws TransformerException
+     * the builder node representing the root XML document.
      */
-    public String asString(Properties outputProperties)
-        throws TransformerException
-    {
-        StringWriter writer = new StringWriter();
-        toWriter(writer, outputProperties);
-        return writer.toString();
-    }
-
-    /**
-     * Serialize the current XML Element and its descendants to a string by
-     * delegating to the {@link #toWriter(Writer, Properties)} method.
-     * If output options are provided, these options are provided to the
-     * {@link Transformer} serializer.
-     *
-     * @param outputProperties
-     * settings for the {@link Transformer} serializer. This parameter may be
-     * null or an empty Properties object, in which case the default output
-     * properties will be applied.
-     *
-     * @return
-     * the XML document as a string
-     *
-     * @throws TransformerException
-     */
-    public String elementAsString(Properties outputProperties)
-        throws TransformerException
-    {
-        StringWriter writer = new StringWriter();
-        toWriter(false, writer, outputProperties);
-        return writer.toString();
-    }
-
-    /**
-     * Serialize the XML document to a string excluding the XML declaration.
-     *
-     * @return
-     * the XML document as a string without the XML declaration at the
-     * beginning of the output.
-     *
-     * @throws TransformerException
-     */
-    public String asString() throws TransformerException {
-        Properties outputProperties = new Properties();
-        outputProperties.put(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
-        return asString(outputProperties);
-    }
-
-    /**
-     * Serialize the current XML Element and its descendants to a string
-     * excluding the XML declaration.
-     *
-     * @return
-     * the XML document as a string without the XML declaration at the
-     * beginning of the output.
-     *
-     * @throws TransformerException
-     */
-    public String elementAsString() throws TransformerException {
-        Properties outputProperties = new Properties();
-        outputProperties.put(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
-        return elementAsString(outputProperties);
-    }
-
-    /**
-     * @return
-     * a namespace context containing the prefixes and namespace URI's used
-     * within this builder's document, to assist in running namespace-aware
-     * XPath queries against the document.
-     */
-    public NamespaceContextImpl buildDocumentNamespaceContext() {
-        return new NamespaceContextImpl(this.root().getElement());
-    }
-
-    protected String getPrefixFromQualifiedName(String qualifiedName) {
-        int colonPos = qualifiedName.indexOf(':');
-        if (colonPos > 0) {
-            return qualifiedName.substring(0, colonPos);
-        } else {
-            return null;
-        }
+    public XMLBuilder document() {
+        return new XMLBuilder(getDocument(), null);
     }
 
 }
