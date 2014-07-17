@@ -195,6 +195,21 @@ public abstract class BaseXMLBuilder {
     }
 
     /**
+     * Find and delete from the underlying Document any text nodes that
+     * contain nothing but whitespace, such as newlines and tab or space
+     * characters used to indent or pretty-print an XML document.
+     *
+     * Uses approach I documented on StackOverflow:
+     * http://stackoverflow.com/a/979606/4970
+     *
+     * @return
+     * a builder node at the same location as before the operation.
+     * @throws XPathExpressionException
+     */
+    public abstract BaseXMLBuilder stripWhitespaceOnlyTextNodes()
+        throws XPathExpressionException;
+
+    /**
      * Imports another BaseXMLBuilder document into this document at the
      * current position. The entire document provided is imported.
      *
@@ -244,6 +259,25 @@ public abstract class BaseXMLBuilder {
     public Document getDocument() {
     	return this.xmlDocument;
     }
+
+    /**
+     * Imports another XMLBuilder document into this document at the
+     * current position. The entire document provided is imported.
+     *
+     * @param builder
+     * the XMLBuilder document to be imported.
+     *
+     * @return
+     * a builder node at the same location as before the import, but
+     * now containing the entire document tree provided.
+     */
+    public abstract BaseXMLBuilder importXMLBuilder(BaseXMLBuilder builder);
+
+    /**
+     * @return
+     * the builder node representing the root element of the XML document.
+     */
+    public abstract BaseXMLBuilder root();
 
     /**
      * Return the result of evaluating an XPath query on the builder's DOM
@@ -322,6 +356,48 @@ public abstract class BaseXMLBuilder {
      * to use namespaces.
      *
      * @return
+     * a builder node representing the first Element that matches the
+     * XPath expression.
+     *
+     * @throws XPathExpressionException
+     * If the XPath is invalid, or if does not resolve to at least one
+     * {@link Node#ELEMENT_NODE}.
+     */
+    public abstract BaseXMLBuilder xpathFind(String xpath, NamespaceContext nsContext)
+        throws XPathExpressionException;
+
+    /**
+     * Find the first element in the builder's DOM matching the given
+     * XPath expression.
+     *
+     * @param xpath
+     * An XPath expression that *must* resolve to an existing Element within
+     * the document object model.
+     *
+     * @return
+     * a builder node representing the first Element that matches the
+     * XPath expression.
+     *
+     * @throws XPathExpressionException
+     * If the XPath is invalid, or if does not resolve to at least one
+     * {@link Node#ELEMENT_NODE}.
+     */
+    public abstract BaseXMLBuilder xpathFind(String xpath)
+        throws XPathExpressionException;
+
+    /**
+     * Find the first element in the builder's DOM matching the given
+     * XPath expression, where the expression may include namespaces if
+     * a {@link NamespaceContext} is provided.
+     *
+     * @param xpath
+     * An XPath expression that *must* resolve to an existing Element within
+     * the document object model.
+     * @param nsContext
+     * a mapping of prefixes to namespace URIs that allows the XPath expression
+     * to use namespaces.
+     *
+     * @return
      * the first Element that matches the XPath expression.
      *
      * @throws XPathExpressionException
@@ -378,6 +454,203 @@ public abstract class BaseXMLBuilder {
             return getDocument().createElementNS(namespaceURI, name);
         }
     }
+
+    /**
+     * Add a named XML element to the document as a child of this builder node,
+     * and return the builder node representing the new child.
+     *
+     * When adding an element to a namespaced document, the new node will be
+     * assigned a namespace matching it's qualified name prefix (if any) or
+     * the document's default namespace. NOTE: If the element has a prefix that
+     * does not match any known namespaces, the element will be created
+     * without any namespace.
+     *
+     * @param name
+     * the name of the XML element.
+     *
+     * @return
+     * a builder node representing the new child.
+     *
+     * @throws IllegalStateException
+     * if you attempt to add a child element to an XML node that already
+     * contains a text node value.
+     */
+    public abstract BaseXMLBuilder element(String name);
+
+    /**
+     * Synonym for {@link #element(String)}.
+     *
+     * @param name
+     * the name of the XML element.
+     *
+     * @return
+     * a builder node representing the new child.
+     *
+     * @throws IllegalStateException
+     * if you attempt to add a child element to an XML node that already
+     * contains a text node value.
+     */
+    public abstract BaseXMLBuilder elem(String name);
+
+    /**
+     * Synonym for {@link #element(String)}.
+     *
+     * @param name
+     * the name of the XML element.
+     *
+     * @return
+     * a builder node representing the new child.
+     *
+     * @throws IllegalStateException
+     * if you attempt to add a child element to an XML node that already
+     * contains a text node value.
+     */
+    public abstract BaseXMLBuilder e(String name);
+
+    /**
+     * Add a named and namespaced XML element to the document as a child of
+     * this builder node, and return the builder node representing the new child.
+     *
+     * @param name
+     * the name of the XML element.
+     * @param namespaceURI
+     * a namespace URI
+     *
+     * @return
+     * a builder node representing the new child.
+     *
+     * @throws IllegalStateException
+     * if you attempt to add a child element to an XML node that already
+     * contains a text node value.
+     */
+    public abstract BaseXMLBuilder element(String name, String namespaceURI);
+
+    /**
+     * Add a named XML element to the document as a sibling element
+     * that precedes the position of this builder node, and return the builder node
+     * representing the new child.
+     *
+     * When adding an element to a namespaced document, the new node will be
+     * assigned a namespace matching it's qualified name prefix (if any) or
+     * the document's default namespace. NOTE: If the element has a prefix that
+     * does not match any known namespaces, the element will be created
+     * without any namespace.
+     *
+     * @param name
+     * the name of the XML element.
+     *
+     * @return
+     * a builder node representing the new child.
+     *
+     * @throws IllegalStateException
+     * if you attempt to add a sibling element to a node where there are already
+     * one or more siblings that are text nodes.
+     */
+    public abstract BaseXMLBuilder elementBefore(String name);
+
+    /**
+     * Add a named and namespaced XML element to the document as a sibling element
+     * that precedes the position of this builder node, and return the builder node
+     * representing the new child.
+     *
+     * @param name
+     * the name of the XML element.
+     * @param namespaceURI
+     * a namespace URI
+     *
+     * @return
+     * a builder node representing the new child.
+     *
+     * @throws IllegalStateException
+     * if you attempt to add a sibling element to a node where there are already
+     * one or more siblings that are text nodes.
+     */
+    public abstract BaseXMLBuilder elementBefore(String name, String namespaceURI);
+
+    /**
+     * Add a named attribute value to the element represented by this builder
+     * node, and return the node representing the element to which the
+     * attribute was added (<strong>not</strong> the new attribute node).
+     *
+     * @param name
+     * the attribute's name.
+     * @param value
+     * the attribute's value.
+     *
+     * @return
+     * the builder node representing the element to which the attribute was
+     * added.
+     */
+    public abstract BaseXMLBuilder attribute(String name, String value);
+
+    /**
+     * Synonym for {@link #attribute(String, String)}.
+     *
+     * @param name
+     * the attribute's name.
+     * @param value
+     * the attribute's value.
+     *
+     * @return
+     * the builder node representing the element to which the attribute was
+     * added.
+     */
+    public abstract BaseXMLBuilder attr(String name, String value);
+
+    /**
+     * Synonym for {@link #attribute(String, String)}.
+     *
+     * @param name
+     * the attribute's name.
+     * @param value
+     * the attribute's value.
+     *
+     * @return
+     * the builder node representing the element to which the attribute was
+     * added.
+     */
+    public abstract BaseXMLBuilder a(String name, String value);
+
+
+    /**
+     * Add or replace the text value of an element represented by this builder
+     * node, and return the node representing the element to which the text
+     * was added (<strong>not</strong> the new text node).
+     *
+     * @param value
+     * the text value to set or add to the element.
+     * @param replaceText
+     * if True any existing text content of the node is replaced with the
+     * given text value, if the given value is appended to any existing text.
+     *
+     * @return
+     * the builder node representing the element to which the text was added.
+     */
+    public abstract BaseXMLBuilder text(String value, boolean replaceText);
+
+    /**
+     * Add a text value to the element represented by this builder node, and
+     * return the node representing the element to which the text
+     * was added (<strong>not</strong> the new text node).
+     *
+     * @param value
+     * the text value to add to the element.
+     *
+     * @return
+     * the builder node representing the element to which the text was added.
+     */
+    public abstract BaseXMLBuilder text(String value);
+
+    /**
+     * Synonym for {@link #text(String)}.
+     *
+     * @param value
+     * the text value to add to the element.
+     *
+     * @return
+     * the builder node representing the element to which the text was added.
+     */
+    public abstract BaseXMLBuilder t(String value);
 
     /**
      * Add a named XML element to the document as a sibling element
@@ -576,6 +849,294 @@ public abstract class BaseXMLBuilder {
     }
 
     /**
+     * Add a CDATA node with String content to the element represented by this
+     * builder node, and return the node representing the element to which the
+     * data was added (<strong>not</strong> the new CDATA node).
+     *
+     * @param data
+     * the String value that will be added to a CDATA element.
+     *
+     * @return
+     * the builder node representing the element to which the data was added.
+     */
+    public abstract BaseXMLBuilder cdata(String data);
+
+    /**
+     * Synonym for {@link #cdata(String)}.
+     *
+     * @param data
+     * the String value that will be added to a CDATA element.
+     *
+     * @return
+     * the builder node representing the element to which the data was added.
+     */
+    public abstract BaseXMLBuilder data(String data);
+
+    /**
+     * Synonym for {@link #cdata(String)}.
+     *
+     * @param data
+     * the String value that will be added to a CDATA element.
+     *
+     * @return
+     * the builder node representing the element to which the data was added.
+     */
+    public abstract BaseXMLBuilder d(String data);
+
+    /**
+     * Add a CDATA node with Base64-encoded byte data content to the element represented
+     * by this builder node, and return the node representing the element to which the
+     * data was added (<strong>not</strong> the new CDATA node).
+     *
+     * @param data
+     * the data value that will be Base64-encoded and added to a CDATA element.
+     *
+     * @return
+     * the builder node representing the element to which the data was added.
+     */
+    public abstract BaseXMLBuilder cdata(byte[] data);
+
+    /**
+     * Synonym for {@link #cdata(byte[])}.
+     *
+     * @param data
+     * the data value that will be Base64-encoded and added to a CDATA element.
+     *
+     * @return
+     * the builder node representing the element to which the data was added.
+     */
+    public abstract BaseXMLBuilder data(byte[] data);
+
+    /**
+     * Synonym for {@link #cdata(byte[])}.
+     *
+     * @param data
+     * the data value that will be Base64-encoded and added to a CDATA element.
+     *
+     * @return
+     * the builder node representing the element to which the data was added.
+     */
+    public abstract BaseXMLBuilder d(byte[] data);
+
+    /**
+     * Add a comment to the element represented by this builder node, and
+     * return the node representing the element to which the comment
+     * was added (<strong>not</strong> the new comment node).
+     *
+     * @param comment
+     * the comment to add to the element.
+     *
+     * @return
+     * the builder node representing the element to which the comment was added.
+     */
+    public abstract BaseXMLBuilder comment(String comment);
+
+    /**
+     * Synonym for {@link #comment(String)}.
+     *
+     * @param comment
+     * the comment to add to the element.
+     *
+     * @return
+     * the builder node representing the element to which the comment was added.
+     */
+    public abstract BaseXMLBuilder cmnt(String comment);
+
+    /**
+     * Synonym for {@link #comment(String)}.
+     *
+     * @param comment
+     * the comment to add to the element.
+     *
+     * @return
+     * the builder node representing the element to which the comment was added.
+     */
+    public abstract BaseXMLBuilder c(String comment);
+
+    /**
+     * Add an instruction to the element represented by this builder node, and
+     * return the node representing the element to which the instruction
+     * was added (<strong>not</strong> the new instruction node).
+     *
+     * @param target
+     * the target value for the instruction.
+     * @param data
+     * the data value for the instruction
+     *
+     * @return
+     * the builder node representing the element to which the instruction was
+     * added.
+     */
+    public abstract BaseXMLBuilder instruction(String target, String data);
+
+    /**
+     * Synonym for {@link #instruction(String, String)}.
+     *
+     * @param target
+     * the target value for the instruction.
+     * @param data
+     * the data value for the instruction
+     *
+     * @return
+     * the builder node representing the element to which the instruction was
+     * added.
+     */
+    public abstract BaseXMLBuilder inst(String target, String data);
+
+    /**
+     * Synonym for {@link #instruction(String, String)}.
+     *
+     * @param target
+     * the target value for the instruction.
+     * @param data
+     * the data value for the instruction
+     *
+     * @return
+     * the builder node representing the element to which the instruction was
+     * added.
+     */
+    public abstract BaseXMLBuilder i(String target, String data);
+
+    /**
+     * Insert an instruction before the element represented by this builder node,
+     * and return the node representing that same element
+     * (<strong>not</strong> the new instruction node).
+     *
+     * @param target
+     * the target value for the instruction.
+     * @param data
+     * the data value for the instruction
+     *
+     * @return
+     * the builder node representing the element before which the instruction was inserted.
+     */
+    public abstract BaseXMLBuilder insertInstruction(String target, String data);
+
+    /**
+     * Add a reference to the element represented by this builder node, and
+     * return the node representing the element to which the reference
+     * was added (<strong>not</strong> the new reference node).
+     *
+     * @param name
+     * the name value for the reference.
+     *
+     * @return
+     * the builder node representing the element to which the reference was
+     * added.
+     */
+    public abstract BaseXMLBuilder reference(String name);
+
+    /**
+     * Synonym for {@link #reference(String)}.
+     *
+     * @param name
+     * the name value for the reference.
+     *
+     * @return
+     * the builder node representing the element to which the reference was
+     * added.
+     */
+    public abstract BaseXMLBuilder ref(String name);
+
+    /**
+     * Synonym for {@link #reference(String)}.
+     *
+     * @param name
+     * the name value for the reference.
+     *
+     * @return
+     * the builder node representing the element to which the reference was
+     * added.
+     */
+    public abstract BaseXMLBuilder r(String name);
+
+    /**
+     * Add an XML namespace attribute to this builder's element node.
+     *
+     * @param prefix
+     * a prefix for the namespace URI within the document, may be null
+     * or empty in which case a default "xmlns" attribute is created.
+     * @param namespaceURI
+     * a namespace uri
+     *
+     * @return
+     * the builder node representing the element to which the attribute was added.
+     */
+    public abstract BaseXMLBuilder namespace(String prefix, String namespaceURI);
+
+    /**
+     * Synonym for {@link #namespace(String, String)}.
+     *
+     * @param prefix
+     * a prefix for the namespace URI within the document, may be null
+     * or empty in which case a default xmlns attribute is created.
+     * @param namespaceURI
+     * a namespace uri
+     *
+     * @return
+     * the builder node representing the element to which the attribute was added.
+     */
+    public abstract BaseXMLBuilder ns(String prefix, String namespaceURI);
+
+    /**
+     * Add an XML namespace attribute to this builder's element node
+     * without a prefix.
+     *
+     * @param namespaceURI
+     * a namespace uri
+     *
+     * @return
+     * the builder node representing the element to which the attribute was added.
+     */
+    public abstract BaseXMLBuilder namespace(String namespaceURI);
+
+    /**
+     * Synonym for {@link #namespace(String)}.
+     *
+     * @param namespaceURI
+     * a namespace uri
+     *
+     * @return
+     * the builder node representing the element to which the attribute was added.
+     */
+    public abstract BaseXMLBuilder ns(String namespaceURI);
+
+
+    /**
+     * Return the builder node representing the n<em>th</em> ancestor element
+     * of this node, or the root node if n exceeds the document's depth.
+     *
+     * @param steps
+     * the number of parent elements to step over while navigating up the chain
+     * of node ancestors. A steps value of 1 will find a node's parent, 2 will
+     * find its grandparent etc.
+     *
+     * @return
+     * the n<em>th</em> ancestor of this node, or the root node if this is
+     * reached before the n<em>th</em> parent is found.
+     */
+    public abstract BaseXMLBuilder up(int steps);
+
+    /**
+     * Return the builder node representing the parent of the current node.
+     *
+     * @return
+     * the parent of this node, or the root node if this method is called on the
+     * root node.
+     */
+    public abstract BaseXMLBuilder up();
+
+    /**
+     * BEWARE: The builder returned by this method represents a Document node, not
+     * an Element node as is usually the case, so attempts to use the attribute or
+     * namespace methods on this builder will likely fail.
+     *
+     * @return
+     * the builder node representing the root XML document.
+     */
+    public abstract BaseXMLBuilder document();
+
+    /**
      * Return the Document node representing the n<em>th</em> ancestor element
      * of this node, or the root node if n exceeds the document's depth.
      *
@@ -604,28 +1165,28 @@ public abstract class BaseXMLBuilder {
      * We allow whitespace so parsed XML documents containing indenting or pretty-printing
      * can still be amended, per issue #17.
      */
-    protected void assertElementContainsNoOrWhitespaceOnlyTextNodes(
-        Node anXmlElement) {
-            Node textNodeWithNonWhitespace = null;
-            NodeList childNodes = anXmlElement.getChildNodes();
-            for (int i = 0; i < childNodes.getLength(); i++) {
-                if (Element.TEXT_NODE == childNodes.item(i).getNodeType()) {
-                    Node textNode = childNodes.item(i);
-                    String textWithoutWhitespace =
-                        textNode.getTextContent().replaceAll("\\s", "");
-                    if (textWithoutWhitespace.length() > 0) {
-                        textNodeWithNonWhitespace = textNode;
-                        break;
-                    }
+    protected void assertElementContainsNoOrWhitespaceOnlyTextNodes(Node anXmlElement)
+    {
+        Node textNodeWithNonWhitespace = null;
+        NodeList childNodes = anXmlElement.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            if (Element.TEXT_NODE == childNodes.item(i).getNodeType()) {
+                Node textNode = childNodes.item(i);
+                String textWithoutWhitespace =
+                    textNode.getTextContent().replaceAll("\\s", "");
+                if (textWithoutWhitespace.length() > 0) {
+                    textNodeWithNonWhitespace = textNode;
+                    break;
                 }
             }
-            if (textNodeWithNonWhitespace != null) {
-                throw new IllegalStateException(
-                    "Cannot add sub-element to element <" + anXmlElement.getNodeName()
-                    + "> that contains a Text node that isn't purely whitespace: "
-                    + textNodeWithNonWhitespace);
-            }
         }
+        if (textNodeWithNonWhitespace != null) {
+            throw new IllegalStateException(
+                "Cannot add sub-element to element <" + anXmlElement.getNodeName()
+                + "> that contains a Text node that isn't purely whitespace: "
+                + textNodeWithNonWhitespace);
+        }
+    }
 
     /**
      * Serialize either the specific Element wrapped by this BaseXMLBuilder,
