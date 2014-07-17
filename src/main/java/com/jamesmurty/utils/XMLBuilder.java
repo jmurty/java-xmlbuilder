@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  *
- * This code is available from the Google Code repository at:
- * http://code.google.com/p/java-xmlbuilder
+ * This code is available from the GitHub code repository at:
+ * https://github.com/jmurty/java-xmlbuilder
  */
 package com.jamesmurty.utils;
 
