@@ -31,6 +31,9 @@ public class NamespaceContextImpl implements NamespaceContext {
     /**
      * Create a namespace context that will lookup namespace
      * information in the given element.
+     *
+     * @param element
+     * Element in which to look up namespace information.
      */
     public NamespaceContextImpl(Element element) {
         this.element = element;
@@ -77,8 +80,8 @@ public class NamespaceContextImpl implements NamespaceContext {
         return null;
     }
 
-    // No implemented
-    @SuppressWarnings("unchecked")
+    // Not implemented
+    @SuppressWarnings({ "rawtypes" })
     public Iterator getPrefixes(String namespaceURI) {
         return Collections.EMPTY_LIST.iterator();
     }

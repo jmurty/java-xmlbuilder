@@ -18,7 +18,6 @@ import javax.xml.xpath.XPathExpressionException;
 import junit.framework.TestCase;
 import net.iharder.Base64;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
