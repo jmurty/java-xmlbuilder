@@ -77,6 +77,13 @@ public abstract class BaseXMLBuilder {
     private static boolean isNamespaceAware = true;
 
     /**
+     * If true, the builder will raise an {@link XMLBuilderRuntimeException}
+     * if external general and parameter entities cannot be explicitly enabled
+     * or disabled.
+     */
+    public static boolean failIfExternalEntityParsingCannotBeConfigured = true;
+
+    /**
      * Construct a new builder object that wraps the given XML document.
      * This constructor is for internal use only.
      *
@@ -113,6 +120,78 @@ public abstract class BaseXMLBuilder {
     }
 
     /**
+     * Explicitly enable or disable the 'external-general-entities' and
+     * 'external-parameter-entities' features of the underlying
+     * DocumentBuilderFactory.
+     *
+     * TODO This is a naive approach that simply tries to apply all known
+     * feature name/URL values in turn until one succeeds, or none do.
+     *
+     * @param factory
+     * factory which will have external general and parameter entities enabled
+     * or disabled.
+     * @param enableExternalEntities
+     * if true external entities will be explicitly enabled, otherwise they
+     * will be explicitly disabled.
+     */
+    protected static void enableOrDisableExternalEntityParsing(
+        DocumentBuilderFactory factory, boolean enableExternalEntities)
+    {
+        // Feature list drawn from:
+        // https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Processing
+
+        /* Enable or disable external general entities */
+        String[] externalGeneralEntitiesFeatures = {
+            // General
+            "http://xml.org/sax/features/external-general-entities",
+            // Xerces 1
+            "http://xerces.apache.org/xerces-j/features.html#external-general-entities",
+            // Xerces 2
+            "http://xerces.apache.org/xerces2-j/features.html#external-general-entities",
+        };
+        boolean success = false;
+        for (String feature: externalGeneralEntitiesFeatures) {
+            try {
+                factory.setFeature(feature, enableExternalEntities);
+                success = true;
+                break;
+            } catch (ParserConfigurationException e) {
+            }
+        }
+        if (!success && failIfExternalEntityParsingCannotBeConfigured) {
+            throw new XMLBuilderRuntimeException(
+                new ParserConfigurationException(
+                    "Failed to set 'external-general-entities' feature to "
+                    + enableExternalEntities));
+        }
+
+        /* Enable or disable external parameter entities */
+        String[] externalParameterEntitiesFeatures = {
+            // General
+            "http://xml.org/sax/features/external-parameter-entities",
+            // Xerces 1
+            "http://xerces.apache.org/xerces-j/features.html#external-parameter-entities",
+            // Xerces 2
+            "http://xerces.apache.org/xerces2-j/features.html#external-parameter-entities",
+        };
+        success = false;
+        for (String feature: externalParameterEntitiesFeatures) {
+            try {
+                factory.setFeature(feature, enableExternalEntities);
+                success = true;
+                break;
+            } catch (ParserConfigurationException e) {
+            }
+        }
+        if (!success && failIfExternalEntityParsingCannotBeConfigured) {
+            throw new XMLBuilderRuntimeException(
+                new ParserConfigurationException(
+                    "Failed to set 'external-parameter-entities' feature to "
+                    + enableExternalEntities));
+        }
+    }
+
+    /**
      * Construct an XML Document with a default namespace with the given
      * root element.
      *
@@ -126,11 +205,13 @@ public abstract class BaseXMLBuilder {
      * @throws FactoryConfigurationError
      * @throws ParserConfigurationException
      */
-    protected static Document createDocumentImpl(String name, String namespaceURI)
+    protected static Document createDocumentImpl(
+        String name, String namespaceURI, boolean enableExternalEntities)
         throws ParserConfigurationException, FactoryConfigurationError
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(isNamespaceAware);
+        enableOrDisableExternalEntityParsing(factory, enableExternalEntities);
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document document = builder.newDocument();
         Element rootElement = null;
@@ -157,11 +238,13 @@ public abstract class BaseXMLBuilder {
      * @throws IOException
      * @throws SAXException
      */
-    protected static Document parseDocumentImpl(InputSource inputSource)
+    protected static Document parseDocumentImpl(
+        InputSource inputSource, boolean enableExternalEntities)
         throws ParserConfigurationException, SAXException, IOException
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(isNamespaceAware);
+        enableOrDisableExternalEntityParsing(factory, enableExternalEntities);
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document document = builder.parse(inputSource);
         return document;

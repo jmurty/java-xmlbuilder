@@ -1,6 +1,17 @@
 Release Notes for java-xmlbuilder
 =================================
 
+Version 1.2 - Pending
+---------------------
+
+Fixes:
+
+* Prevent XML External Entity (XXE) injection attacks by disabling parsing of
+  general and parameter external entities by default (#6). External entities
+  are now only parsed if this feature is explicitly enabled by passing a boolean
+  flag value to the #create and #parse methods.  
+  WARNING: This will break code that expects external entities to be parsed.
+
 Version 1.1 - 22 July 2014
 --------------------------
 

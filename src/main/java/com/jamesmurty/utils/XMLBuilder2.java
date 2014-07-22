@@ -118,6 +118,53 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      * the name of the document's root element.
      * @param namespaceURI
      * default namespace URI for document, ignored if null or empty.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link ParserConfigurationException}
+     */
+    public static XMLBuilder2 create(
+        String name, String namespaceURI, boolean enableExternalEntities)
+    {
+        try {
+            return new XMLBuilder2(
+                createDocumentImpl(name, namespaceURI, enableExternalEntities));
+        } catch (ParserConfigurationException e) {
+            throw wrapExceptionAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Construct a builder for new XML document. The document will be created
+     * with the given root element, and the builder returned by this method
+     * will serve as the starting-point for any further document additions.
+     *
+     * @param name
+     * the name of the document's root element.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link ParserConfigurationException}
+     */
+    public static XMLBuilder2 create(String name, boolean enableExternalEntities)
+    {
+        return XMLBuilder2.create(name, null, enableExternalEntities);
+    }
+
+    /**
+     * Construct a builder for new XML document with a default namespace.
+     * The document will be created with the given root element, and the builder
+     * returned by this method will serve as the starting-point for any further
+     * document additions.
+     *
+     * @param name
+     * the name of the document's root element.
+     * @param namespaceURI
+     * default namespace URI for document, ignored if null or empty.
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      * @throws XMLBuilderRuntimeException
@@ -125,11 +172,7 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      */
     public static XMLBuilder2 create(String name, String namespaceURI)
     {
-        try {
-            return new XMLBuilder2(createDocumentImpl(name, namespaceURI));
-        } catch (ParserConfigurationException e) {
-            throw wrapExceptionAsRuntimeException(e);
-        }
+        return XMLBuilder2.create(name, namespaceURI, false);
     }
 
     /**
@@ -146,7 +189,83 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      */
     public static XMLBuilder2 create(String name)
     {
-        return create(name, null);
+        return XMLBuilder2.create(name, null, false);
+    }
+
+    /**
+     * Construct a builder from an existing XML document. The provided XML
+     * document will be parsed and an XMLBuilder2 object referencing the
+     * document's root element will be returned.
+     *
+     * @param inputSource
+     * an XML document input source that will be parsed into a DOM.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link ParserConfigurationException}, {@link SAXException},
+     * {@link IOException}
+     */
+    public static XMLBuilder2 parse(
+        InputSource inputSource, boolean enableExternalEntities)
+    {
+        try {
+            return new XMLBuilder2(
+                parseDocumentImpl(inputSource, enableExternalEntities));
+        } catch (ParserConfigurationException e) {
+            throw wrapExceptionAsRuntimeException(e);
+        } catch (SAXException e) {
+            throw wrapExceptionAsRuntimeException(e);
+        } catch (IOException e) {
+            throw wrapExceptionAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Construct a builder from an existing XML document string.
+     * The provided XML document will be parsed and an XMLBuilder2
+     * object referencing the document's root element will be returned.
+     *
+     * @param xmlString
+     * an XML document string that will be parsed into a DOM.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     */
+    public static XMLBuilder2 parse(
+        String xmlString, boolean enableExternalEntities)
+    {
+        return XMLBuilder2.parse(
+            new InputSource(new StringReader(xmlString)),
+            enableExternalEntities);
+    }
+
+    /**
+     * Construct a builder from an existing XML document file.
+     * The provided XML document will be parsed and an XMLBuilder2
+     * object referencing the document's root element will be returned.
+     *
+     * @param xmlFile
+     * an XML document file that will be parsed into a DOM.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link ParserConfigurationException}, {@link SAXException},
+     * {@link IOException}, {@link FileNotFoundException}
+     */
+    public static XMLBuilder2 parse(File xmlFile, boolean enableExternalEntities)
+    {
+        try {
+            return XMLBuilder2.parse(
+                new InputSource(new FileReader(xmlFile)),
+                enableExternalEntities);
+        } catch (FileNotFoundException e) {
+            throw wrapExceptionAsRuntimeException(e);
+        }
     }
 
     /**
@@ -164,15 +283,7 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      */
     public static XMLBuilder2 parse(InputSource inputSource)
     {
-        try {
-            return new XMLBuilder2(parseDocumentImpl(inputSource));
-        } catch (ParserConfigurationException e) {
-            throw wrapExceptionAsRuntimeException(e);
-        } catch (SAXException e) {
-            throw wrapExceptionAsRuntimeException(e);
-        } catch (IOException e) {
-            throw wrapExceptionAsRuntimeException(e);
-        }
+        return XMLBuilder2.parse(inputSource, false);
     }
 
     /**
@@ -187,7 +298,7 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      */
     public static XMLBuilder2 parse(String xmlString)
     {
-        return XMLBuilder2.parse(new InputSource(new StringReader(xmlString)));
+        return XMLBuilder2.parse(xmlString, false);
     }
 
     /**
@@ -205,11 +316,7 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      */
     public static XMLBuilder2 parse(File xmlFile)
     {
-        try {
-            return XMLBuilder2.parse(new InputSource(new FileReader(xmlFile)));
-        } catch (FileNotFoundException e) {
-            throw wrapExceptionAsRuntimeException(e);
-        }
+        return XMLBuilder2.parse(xmlFile, false);
     }
 
     /**

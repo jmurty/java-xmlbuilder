@@ -6,6 +6,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Properties;
 
+import javax.annotation.Resource;
 import javax.xml.transform.OutputKeys;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -50,6 +51,14 @@ public abstract class BaseXMLBuilderTests extends TestCase {
     protected BaseXMLBuilder XMLBuilder_parse(InputSource source) throws Exception {
         return (BaseXMLBuilder) XMLBuilderToTest().getMethod(
             "parse", InputSource.class).invoke(null, source);
+    }
+
+    protected BaseXMLBuilder XMLBuilder_parse(
+        String documentString, boolean enableExternalEntities) throws Exception
+    {
+        return (BaseXMLBuilder) XMLBuilderToTest().getMethod(
+            "parse", String.class, boolean.class).invoke(
+                null, documentString, enableExternalEntities);
     }
 
     protected BaseXMLBuilder XMLBuilder_parse(String documentString) throws Exception {
@@ -617,6 +626,31 @@ public abstract class BaseXMLBuilderTests extends TestCase {
         builder.toWriter(new FileWriter(f), outputProperties);
         assertEquals(expectedByteSize, f.length());
         f.delete();
+    }
+
+    /**
+     * Ensure XML Builder parse methods use a default configuration that
+     * prevents XML External Entity (XXE) injection attacks.
+     *
+     * @throws Exception
+     */
+    public void testXMLBuilderParserImmuneToXXEAttackByDefault() throws Exception {
+        String externalFilePath = "src/test/java/com/jamesmurty/utils/external.txt";
+        File externalFile = new File(externalFilePath);
+        String XML_DOC_WITH_XXE =
+            "<?xml version=\"1.0\"?>" +
+            "<!DOCTYPE Projects [" +
+                "<!ELEMENT JetS3t ANY>" +
+                "<!ENTITY xx1 SYSTEM \"" + externalFile.toURI() + "\"> ]>" +
+            EXAMPLE_XML_DOC_START + "&xx1;" + EXAMPLE_XML_DOC_END;
+        // By default, builder is immune from XXE injection
+        BaseXMLBuilder builder = XMLBuilder_parse(XML_DOC_WITH_XXE);
+        String parsedXml = builder.asString();
+        assertFalse(parsedXml.indexOf("Injected XXE Data") >= 0);
+        // If you enable external entity processing, builder becomes subject to XXE injection
+        builder = XMLBuilder_parse(XML_DOC_WITH_XXE, true);
+        parsedXml = builder.asString();
+        assertTrue(parsedXml.indexOf("Injected XXE Data") >= 0);
     }
 
 }

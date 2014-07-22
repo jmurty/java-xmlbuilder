@@ -99,6 +99,53 @@ public final class XMLBuilder extends BaseXMLBuilder {
      * the name of the document's root element.
      * @param namespaceURI
      * default namespace URI for document, ignored if null or empty.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     *
+     * @throws FactoryConfigurationError
+     * @throws ParserConfigurationException
+     */
+    public static XMLBuilder create(String name, String namespaceURI,
+        boolean enableExternalEntities)
+        throws ParserConfigurationException, FactoryConfigurationError
+    {
+        return new XMLBuilder(
+            createDocumentImpl(name, namespaceURI, enableExternalEntities));
+    }
+
+    /**
+     * Construct a builder for new XML document. The document will be created
+     * with the given root element, and the builder returned by this method
+     * will serve as the starting-point for any further document additions.
+     *
+     * @param name
+     * the name of the document's root element.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     *
+     * @throws FactoryConfigurationError
+     * @throws ParserConfigurationException
+     */
+    public static XMLBuilder create(String name, boolean enableExternalEntities)
+        throws ParserConfigurationException, FactoryConfigurationError
+    {
+        return create(name, null, enableExternalEntities);
+    }
+
+    /**
+     * Construct a builder for new XML document with a default namespace.
+     * The document will be created with the given root element, and the builder
+     * returned by this method will serve as the starting-point for any further
+     * document additions.
+     *
+     * @param name
+     * the name of the document's root element.
+     * @param namespaceURI
+     * default namespace URI for document, ignored if null or empty.
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      *
@@ -108,7 +155,7 @@ public final class XMLBuilder extends BaseXMLBuilder {
     public static XMLBuilder create(String name, String namespaceURI)
         throws ParserConfigurationException, FactoryConfigurationError
     {
-        return new XMLBuilder(createDocumentImpl(name, namespaceURI));
+        return create(name, namespaceURI, false);
     }
 
     /**
@@ -137,6 +184,84 @@ public final class XMLBuilder extends BaseXMLBuilder {
      *
      * @param inputSource
      * an XML document input source that will be parsed into a DOM.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     * @throws ParserConfigurationException
+     *
+     * @throws FactoryConfigurationError
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     */
+    public static XMLBuilder parse(
+        InputSource inputSource, boolean enableExternalEntities)
+        throws ParserConfigurationException, SAXException, IOException
+    {
+        return new XMLBuilder(
+            parseDocumentImpl(inputSource, enableExternalEntities));
+    }
+
+    /**
+     * Construct a builder from an existing XML document string.
+     * The provided XML document will be parsed and an XMLBuilder
+     * object referencing the document's root element will be returned.
+     *
+     * @param xmlString
+     * an XML document string that will be parsed into a DOM.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     *
+     * @throws ParserConfigurationException
+     * @throws FactoryConfigurationError
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     */
+    public static XMLBuilder parse(
+        String xmlString, boolean enableExternalEntities)
+        throws ParserConfigurationException, SAXException, IOException
+    {
+        return XMLBuilder.parse(
+            new InputSource(new StringReader(xmlString)),
+            enableExternalEntities);
+    }
+
+    /**
+     * Construct a builder from an existing XML document file.
+     * The provided XML document will be parsed and an XMLBuilder
+     * object referencing the document's root element will be returned.
+     *
+     * @param xmlFile
+     * an XML document file that will be parsed into a DOM.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @return
+     * a builder node that can be used to add more nodes to the XML document.
+     *
+     * @throws ParserConfigurationException
+     * @throws FactoryConfigurationError
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     */
+    public static XMLBuilder parse(File xmlFile, boolean enableExternalEntities)
+        throws ParserConfigurationException, SAXException, IOException
+    {
+        return XMLBuilder.parse(
+            new InputSource(new FileReader(xmlFile)), enableExternalEntities);
+    }
+
+    /**
+     * Construct a builder from an existing XML document. The provided XML
+     * document will be parsed and an XMLBuilder object referencing the
+     * document's root element will be returned.
+     *
+     * @param inputSource
+     * an XML document input source that will be parsed into a DOM.
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      * @throws ParserConfigurationException
@@ -149,7 +274,7 @@ public final class XMLBuilder extends BaseXMLBuilder {
     public static XMLBuilder parse(InputSource inputSource)
         throws ParserConfigurationException, SAXException, IOException
     {
-        return new XMLBuilder(parseDocumentImpl(inputSource));
+        return XMLBuilder.parse(inputSource, false);
     }
 
     /**
@@ -171,7 +296,7 @@ public final class XMLBuilder extends BaseXMLBuilder {
     public static XMLBuilder parse(String xmlString)
         throws ParserConfigurationException, SAXException, IOException
     {
-        return XMLBuilder.parse(new InputSource(new StringReader(xmlString)));
+        return XMLBuilder.parse(xmlString, false);
     }
 
     /**
@@ -193,7 +318,7 @@ public final class XMLBuilder extends BaseXMLBuilder {
     public static XMLBuilder parse(File xmlFile)
         throws ParserConfigurationException, SAXException, IOException
     {
-        return XMLBuilder.parse(new InputSource(new FileReader(xmlFile)));
+        return XMLBuilder.parse(xmlFile, false);
     }
 
     @Override
