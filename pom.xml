@@ -67,6 +67,7 @@
         <configuration>
           <tagNameFormat>v@{project.version}</tagNameFormat>
           <pushChanges>false</pushChanges>
+          <arguments>-Dgpgsign=true</arguments>
         </configuration>
       </plugin>
       
