@@ -20,7 +20,9 @@
 package com.jamesmurty.utils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.Writer;
 import java.util.Properties;
@@ -29,11 +31,15 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * XML Builder is a utility that creates simple XML documents using relatively
@@ -94,6 +100,7 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
     }
 
     private static RuntimeException wrapExceptionAsRuntimeException(Exception e) {
+        // Don't wrap (or re-wrap) runtime exceptions.
         if (e instanceof RuntimeException) {
             return (RuntimeException) e;
         } else {
@@ -113,12 +120,14 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      * default namespace URI for document, ignored if null or empty.
      * @return
      * a builder node that can be used to add more nodes to the XML document.
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link ParserConfigurationException}
      */
     public static XMLBuilder2 create(String name, String namespaceURI)
     {
         try {
             return new XMLBuilder2(createDocumentImpl(name, namespaceURI));
-        } catch (Exception e) {
+        } catch (ParserConfigurationException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
@@ -132,6 +141,8 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      * the name of the document's root element.
      * @return
      * a builder node that can be used to add more nodes to the XML document.
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link ParserConfigurationException}
      */
     public static XMLBuilder2 create(String name)
     {
@@ -147,12 +158,19 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      * an XML document input source that will be parsed into a DOM.
      * @return
      * a builder node that can be used to add more nodes to the XML document.
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link ParserConfigurationException}, {@link SAXException},
+     * {@link IOException}
      */
     public static XMLBuilder2 parse(InputSource inputSource)
     {
         try {
             return new XMLBuilder2(parseDocumentImpl(inputSource));
-        } catch (Exception e) {
+        } catch (ParserConfigurationException e) {
+            throw wrapExceptionAsRuntimeException(e);
+        } catch (SAXException e) {
+            throw wrapExceptionAsRuntimeException(e);
+        } catch (IOException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
@@ -181,23 +199,30 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      * an XML document file that will be parsed into a DOM.
      * @return
      * a builder node that can be used to add more nodes to the XML document.
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link ParserConfigurationException}, {@link SAXException},
+     * {@link IOException}, {@link FileNotFoundException}
      */
     public static XMLBuilder2 parse(File xmlFile)
     {
         try {
             return XMLBuilder2.parse(new InputSource(new FileReader(xmlFile)));
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
 
+    /**
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link XPathExpressionException}
+     */
     @Override
     public XMLBuilder2 stripWhitespaceOnlyTextNodes()
     {
         try {
             super.stripWhitespaceOnlyTextNodesImpl();
             return this;
-        } catch (Exception e) {
+        } catch (XPathExpressionException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
@@ -213,13 +238,17 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
         return new XMLBuilder2(getDocument());
     }
 
+    /**
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link XPathExpressionException}
+     */
     @Override
     public XMLBuilder2 xpathFind(String xpath, NamespaceContext nsContext)
     {
         try {
             Node foundNode = super.xpathFindImpl(xpath, nsContext);
             return new XMLBuilder2(foundNode, null);
-        } catch (Exception e) {
+        } catch (XPathExpressionException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
@@ -424,78 +453,118 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
         return new XMLBuilder2(getDocument(), null);
     }
 
+    /**
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link TransformerException}
+     *
+     */
     @Override
     public String asString() {
         try {
             return super.asString();
-        } catch (Exception e) {
+        } catch (TransformerException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
 
+    /**
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link TransformerException}
+     *
+     */
     @Override
     public String asString(Properties properties) {
         try {
             return super.asString(properties);
-        } catch (Exception e) {
+        } catch (TransformerException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
 
+    /**
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link TransformerException}
+     *
+     */
     @Override
     public String elementAsString() {
         try {
             return super.elementAsString();
-        } catch (Exception e) {
+        } catch (TransformerException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
 
+    /**
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link TransformerException}
+     *
+     */
     @Override
     public String elementAsString(Properties outputProperties) {
         try {
             return super.elementAsString(outputProperties);
-        } catch (Exception e) {
+        } catch (TransformerException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
 
+    /**
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link TransformerException}
+     *
+     */
     @Override
     public void toWriter(boolean wholeDocument, Writer writer, Properties outputProperties)
     {
         try {
             super.toWriter(wholeDocument, writer, outputProperties);
-        } catch (Exception e) {
+        } catch (TransformerException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
 
+    /**
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link TransformerException}
+     *
+     */
     @Override
     public void toWriter(Writer writer, Properties outputProperties)
     {
         try {
             super.toWriter(writer, outputProperties);
-        } catch (Exception e) {
+        } catch (TransformerException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
 
+    /**
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link XPathExpressionException}
+     *
+     */
     @Override
     public Object xpathQuery(String xpath, QName type, NamespaceContext nsContext)
     {
         try {
             return super.xpathQuery(xpath, type, nsContext);
-        } catch (Exception e) {
+        } catch (XPathExpressionException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
 
+    /**
+     * @throws XMLBuilderRuntimeException
+     * to wrap {@link XPathExpressionException}
+     *
+     */
     @Override
     public Object xpathQuery(String xpath, QName type)
     {
         try {
             return super.xpathQuery(xpath, type);
-        } catch (Exception e) {
+        } catch (XPathExpressionException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
     }
