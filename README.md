@@ -45,7 +45,7 @@ Easily build XML documents using code structured like the final document.
 This code:
 
 ```java
-XMLBuilder builder = XMLBuilder.create("Projects")
+XMLBuilder2 builder = XMLBuilder2.create("Projects")
     .e("java-xmlbuilder").a("language", "Java").a("scm","SVN")
         .e("Location").a("type", "URL")
             .t("http://code.google.com/p/java-xmlbuilder/")
@@ -73,7 +73,7 @@ Produces this XML document:
 Getting Started
 ---------------
 
-See further example usage below and the 
+See further example usage below and in the 
 [JavaDoc documentation](http://s3.jamesmurty.com/java-xmlbuilder/index.html).
 
 Download a Jar file containing the latest version
