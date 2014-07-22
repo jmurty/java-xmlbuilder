@@ -17,6 +17,25 @@ further if you have special requirements.
 
 [Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
+XMLBuilder versus XMLBuilder2
+-----------------------------
+
+Since version 1.1 this library provides two builder implementations and APIs:
+
+ * `XMLBuilder` – the original API – follows standard Java practice of
+   re-throwing lower level checked exceptions when you do things like create a
+   new document.  
+   You must explicitly `catch` these checked exceptions in your codebase, even
+   though they are unlikely to occur in tested code. 
+ * `XMLBuilder2` is a newer API that removes checked exceptions altogether, and
+   will instead wrap and propagate lower level exceptions in an unchecked
+   `XMLBuilderRuntimeException`.  
+   Use this class if you don't like the code mess or overhead of try/catching
+   many low-level exceptions that are unlikely to occur in practice. 
+
+Both these versions work identically apart from the handling of errors, so you
+can use whichever version you prefer or "upgrade" from one to the other in
+existing code.
 
 Quick Example
 -------------

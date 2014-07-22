@@ -1,6 +1,27 @@
 Release Notes for java-xmlbuilder
 =================================
 
+Version 1.1 - 22 July 2014
+--------------------------
+
+Added a new `XMLBuilder2` implementation that avoids checked exceptions in the
+API and throws runtime exceptions instead. This should make the library much
+more pleasant to use, and your code much cleaner, in situations where low-level
+exceptions are unlikely -- which is probably most situations where you would
+use this library.  
+
+For example when creating a new document with the `#create` method, instead of
+needing to explicitly catch the unlikely `ParserConfigurationException`, if you
+use `XMLBuilder2` this exception automatically gets wrapped in the new
+`XMLBuilderRuntimeException` class and can be left to propagate out.  
+
+Aside from the removal of checked exceptions, `XMLBuilder2` has the same API as
+the original `XMLBuilder` and should therefore be a drop-in replacement in
+existing code.
+
+For further discussion and rationale see:
+https://github.com/jmurty/java-xmlbuilder/issues/4
+
 Version 1.0 - 6 March 2014
 --------------------------
 
