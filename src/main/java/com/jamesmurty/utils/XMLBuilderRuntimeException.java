@@ -9,6 +9,12 @@ package com.jamesmurty.utils;
  */
 public class XMLBuilderRuntimeException extends RuntimeException {
 
+    private static final long serialVersionUID = -635323496745601589L;
+
+    /**
+     * @param exception
+     * cause exception to be wrapped
+     */
     public XMLBuilderRuntimeException(Exception exception) {
         super(exception);
     }
