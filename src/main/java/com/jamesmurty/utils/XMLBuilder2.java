@@ -64,7 +64,7 @@ import org.xml.sax.InputSource;
  *
  * @author James Murty
  */
-public class XMLBuilder2 extends BaseXMLBuilder {
+public final class XMLBuilder2 extends BaseXMLBuilder {
 
     /**
      * Construct a new builder object that wraps the given XML document.

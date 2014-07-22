@@ -60,7 +60,7 @@ import org.xml.sax.SAXException;
  *
  * @author James Murty
  */
-public class XMLBuilder extends BaseXMLBuilder {
+public final class XMLBuilder extends BaseXMLBuilder {
 
     /**
      * Construct a new builder object that wraps the given XML document.
