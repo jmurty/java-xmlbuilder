@@ -526,7 +526,7 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
 
     @Override
     public XMLBuilder2 ns(String prefix, String namespaceURI) {
-        return attribute(prefix, namespaceURI);
+        return namespace(prefix, namespaceURI);
     }
 
     @Override
