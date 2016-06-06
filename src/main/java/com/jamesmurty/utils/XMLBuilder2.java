@@ -99,6 +99,15 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
         super(myNode, parentNode);
     }
 
+    /**
+     * Construct a new builder object that enables or disables Namespace awareness
+     * @param isNamespaceAware
+     */
+    protected XMLBuilder2(boolean isNamespaceAware) {
+        super();
+        setIsNamespaceAware(isNamespaceAware);
+    }
+
     private static RuntimeException wrapExceptionAsRuntimeException(Exception e) {
         // Don't wrap (or re-wrap) runtime exceptions.
         if (e instanceof RuntimeException) {
@@ -284,6 +293,17 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
     public static XMLBuilder2 parse(InputSource inputSource)
     {
         return XMLBuilder2.parse(inputSource, false);
+    }
+
+    /**
+     * Construct a builder enabling or disabling namespace awareness
+     * @param isNamespaceAware
+     * @return
+     * a new builder object with namespace enabled or disabled, call this before
+     * parse.
+     */
+    public static XMLBuilder2 NamespaceAware(boolean isNamespaceAware) {
+        return new XMLBuilder2(isNamespaceAware);
     }
 
     /**
