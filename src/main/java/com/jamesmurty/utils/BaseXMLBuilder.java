@@ -83,6 +83,9 @@ public abstract class BaseXMLBuilder {
      */
     public static boolean failIfExternalEntityParsingCannotBeConfigured = true;
 
+    protected BaseXMLBuilder(){
+
+    }
     /**
      * Construct a new builder object that wraps the given XML document.
      * This constructor is for internal use only.
@@ -1428,4 +1431,32 @@ public abstract class BaseXMLBuilder {
         }
     }
 
+    /**
+     * Namespace Aware
+     * @return
+     * The actual status if enabled or not
+     */
+    public static boolean isNamespaceAware() {
+        return isNamespaceAware;
+    }
+
+    /**
+     * Enable or disable Namespace awareness
+     * @param isNamespaceAware
+     */
+    public static void setIsNamespaceAware(boolean isNamespaceAware) {
+        BaseXMLBuilder.isNamespaceAware = isNamespaceAware;
+    }
+
+    /**
+     * builder method that enables or diables Namespace awareness.
+     *
+     * @param isNamespaceAware
+     * @return
+     * the builder object representing the attribute was added.
+     */
+    public BaseXMLBuilder withNamespaceAware(boolean isNamespaceAware) {
+        this.setIsNamespaceAware(isNamespaceAware());
+        return this;
+    }
 }

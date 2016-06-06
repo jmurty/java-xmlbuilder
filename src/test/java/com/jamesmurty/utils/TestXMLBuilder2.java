@@ -39,4 +39,12 @@ public class TestXMLBuilder2 extends BaseXMLBuilderTests {
         }
     }
 
+    public void testNamespaceAware() {
+        XMLBuilder2 builder = XMLBuilder2.NamespaceAware(false).parse(EXAMPLE_XML_DOC);
+
+        XMLBuilder2 result = builder.xpathFind("/Projects/java-xmlbuilder/Location");
+
+        assertEquals("http://code.google.com/p/java-xmlbuilder/",result.getElement().getTextContent());
+    }
+
 }
