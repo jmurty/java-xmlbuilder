@@ -351,6 +351,22 @@ To produce:
 </Projects>
 ```
 
+### Configuring advanced features
+
+When creating or parsing a document you can enable and disable advanced
+features by using the more explicit versions of the `parse()` and `create()`
+constructors.
+
+You can:
+
+* use the `enableExternalEntities` flag to enable or disable external entities.  
+  NOTE: you should leave these disabled, as they are by default, unless you
+  really need them because they open you to XML External Entity (XXE) injection
+  attacks.
+* use the `isNamespaceAware` flag to enable or disable namespace awareness in
+  the underlying `DocumentBuilderFactory`.
+ 
+
 Release History
 ---------------
 
