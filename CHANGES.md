@@ -1,8 +1,8 @@
 Release Notes for java-xmlbuilder
 =================================
 
-Version 1.2 - Pending
----------------------
+Version 1.2 - 1 September 2017
+------------------------------
 
 Fixes:
 
