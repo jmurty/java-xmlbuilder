@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 James Murty (www.jamesmurty.com)
+ * Copyright 2008-2017 James Murty (www.jamesmurty.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,17 +120,22 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      * default namespace URI for document, ignored if null or empty.
      * @param enableExternalEntities
      * enable external entities; beware of XML External Entity (XXE) injection.
+     * @param isNamespaceAware
+     * enable or disable namespace awareness in the underlying
+     * {@link DocumentBuilderFactory}
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      * @throws XMLBuilderRuntimeException
      * to wrap {@link ParserConfigurationException}
      */
     public static XMLBuilder2 create(
-        String name, String namespaceURI, boolean enableExternalEntities)
+        String name, String namespaceURI, boolean enableExternalEntities,
+        boolean isNamespaceAware)
     {
         try {
             return new XMLBuilder2(
-                createDocumentImpl(name, namespaceURI, enableExternalEntities));
+                createDocumentImpl(
+                    name, namespaceURI, enableExternalEntities, isNamespaceAware));
         } catch (ParserConfigurationException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
@@ -145,14 +150,19 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      * the name of the document's root element.
      * @param enableExternalEntities
      * enable external entities; beware of XML External Entity (XXE) injection.
+     * @param isNamespaceAware
+     * enable or disable namespace awareness in the underlying
+     * {@link DocumentBuilderFactory}
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      * @throws XMLBuilderRuntimeException
      * to wrap {@link ParserConfigurationException}
      */
-    public static XMLBuilder2 create(String name, boolean enableExternalEntities)
+    public static XMLBuilder2 create(String name,
+        boolean enableExternalEntities, boolean isNamespaceAware)
     {
-        return XMLBuilder2.create(name, null, enableExternalEntities);
+        return XMLBuilder2.create(
+            name, null, enableExternalEntities, isNamespaceAware);
     }
 
     /**
@@ -172,7 +182,7 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      */
     public static XMLBuilder2 create(String name, String namespaceURI)
     {
-        return XMLBuilder2.create(name, namespaceURI, false);
+        return XMLBuilder2.create(name, namespaceURI, false, true);
     }
 
     /**
@@ -189,7 +199,7 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      */
     public static XMLBuilder2 create(String name)
     {
-        return XMLBuilder2.create(name, null, false);
+        return XMLBuilder2.create(name, null, false, true);
     }
 
     /**
@@ -201,6 +211,9 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      * an XML document input source that will be parsed into a DOM.
      * @param enableExternalEntities
      * enable external entities; beware of XML External Entity (XXE) injection.
+     * @param isNamespaceAware
+     * enable or disable namespace awareness in the underlying
+     * {@link DocumentBuilderFactory}
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      * @throws XMLBuilderRuntimeException
@@ -208,11 +221,13 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      * {@link IOException}
      */
     public static XMLBuilder2 parse(
-        InputSource inputSource, boolean enableExternalEntities)
+        InputSource inputSource, boolean enableExternalEntities,
+        boolean isNamespaceAware)
     {
         try {
             return new XMLBuilder2(
-                parseDocumentImpl(inputSource, enableExternalEntities));
+                parseDocumentImpl(
+                    inputSource, enableExternalEntities, isNamespaceAware));
         } catch (ParserConfigurationException e) {
             throw wrapExceptionAsRuntimeException(e);
         } catch (SAXException e) {
@@ -231,15 +246,19 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      * an XML document string that will be parsed into a DOM.
      * @param enableExternalEntities
      * enable external entities; beware of XML External Entity (XXE) injection.
+     * @param isNamespaceAware
+     * enable or disable namespace awareness in the underlying
+     * {@link DocumentBuilderFactory}
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      */
     public static XMLBuilder2 parse(
-        String xmlString, boolean enableExternalEntities)
+        String xmlString, boolean enableExternalEntities, boolean isNamespaceAware)
     {
         return XMLBuilder2.parse(
             new InputSource(new StringReader(xmlString)),
-            enableExternalEntities);
+            enableExternalEntities,
+            isNamespaceAware);
     }
 
     /**
@@ -251,18 +270,23 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      * an XML document file that will be parsed into a DOM.
      * @param enableExternalEntities
      * enable external entities; beware of XML External Entity (XXE) injection.
+     * @param isNamespaceAware
+     * enable or disable namespace awareness in the underlying
+     * {@link DocumentBuilderFactory}
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      * @throws XMLBuilderRuntimeException
      * to wrap {@link ParserConfigurationException}, {@link SAXException},
      * {@link IOException}, {@link FileNotFoundException}
      */
-    public static XMLBuilder2 parse(File xmlFile, boolean enableExternalEntities)
+    public static XMLBuilder2 parse(File xmlFile, boolean enableExternalEntities,
+        boolean isNamespaceAware)
     {
         try {
             return XMLBuilder2.parse(
                 new InputSource(new FileReader(xmlFile)),
-                enableExternalEntities);
+                enableExternalEntities,
+                isNamespaceAware);
         } catch (FileNotFoundException e) {
             throw wrapExceptionAsRuntimeException(e);
         }
@@ -283,7 +307,7 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      */
     public static XMLBuilder2 parse(InputSource inputSource)
     {
-        return XMLBuilder2.parse(inputSource, false);
+        return XMLBuilder2.parse(inputSource, false, true);
     }
 
     /**
@@ -298,7 +322,7 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      */
     public static XMLBuilder2 parse(String xmlString)
     {
-        return XMLBuilder2.parse(xmlString, false);
+        return XMLBuilder2.parse(xmlString, false, true);
     }
 
     /**
@@ -316,7 +340,7 @@ public final class XMLBuilder2 extends BaseXMLBuilder {
      */
     public static XMLBuilder2 parse(File xmlFile)
     {
-        return XMLBuilder2.parse(xmlFile, false);
+        return XMLBuilder2.parse(xmlFile, false, true);
     }
 
     /**

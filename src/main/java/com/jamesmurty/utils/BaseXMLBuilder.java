@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 James Murty (www.jamesmurty.com)
+ * Copyright 2008-2017 James Murty (www.jamesmurty.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,8 +73,6 @@ public abstract class BaseXMLBuilder {
      * The underlying node represented by this builder node.
      */
     private Node xmlNode = null;
-
-    private static boolean isNamespaceAware = true;
 
     /**
      * If true, the builder will raise an {@link XMLBuilderRuntimeException}
@@ -199,6 +197,11 @@ public abstract class BaseXMLBuilder {
      * the name of the document's root element.
      * @param namespaceURI
      * default namespace URI for document, ignored if null or empty.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @param isNamespaceAware
+     * enable or disable namespace awareness in the underlying
+     * {@link DocumentBuilderFactory}
      * @return
      * an XML Document.
      *
@@ -206,7 +209,8 @@ public abstract class BaseXMLBuilder {
      * @throws ParserConfigurationException
      */
     protected static Document createDocumentImpl(
-        String name, String namespaceURI, boolean enableExternalEntities)
+        String name, String namespaceURI, boolean enableExternalEntities,
+        boolean isNamespaceAware)
         throws ParserConfigurationException, FactoryConfigurationError
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -229,6 +233,11 @@ public abstract class BaseXMLBuilder {
      *
      * @param inputSource
      * an XML document input source that will be parsed into a DOM.
+     * @param enableExternalEntities
+     * enable external entities; beware of XML External Entity (XXE) injection.
+     * @param isNamespaceAware
+     * enable or disable namespace awareness in the underlying
+     * {@link DocumentBuilderFactory}
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      * @throws ParserConfigurationException
@@ -239,7 +248,8 @@ public abstract class BaseXMLBuilder {
      * @throws SAXException
      */
     protected static Document parseDocumentImpl(
-        InputSource inputSource, boolean enableExternalEntities)
+        InputSource inputSource, boolean enableExternalEntities,
+        boolean isNamespaceAware)
         throws ParserConfigurationException, SAXException, IOException
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

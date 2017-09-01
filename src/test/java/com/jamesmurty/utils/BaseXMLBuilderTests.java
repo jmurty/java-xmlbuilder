@@ -54,11 +54,12 @@ public abstract class BaseXMLBuilderTests extends TestCase {
     }
 
     protected BaseXMLBuilder XMLBuilder_parse(
-        String documentString, boolean enableExternalEntities) throws Exception
+        String documentString, boolean enableExternalEntities,
+        boolean isNamespaceAware) throws Exception
     {
         return (BaseXMLBuilder) XMLBuilderToTest().getMethod(
-            "parse", String.class, boolean.class).invoke(
-                null, documentString, enableExternalEntities);
+            "parse", String.class, boolean.class, boolean.class).invoke(
+                null, documentString, enableExternalEntities, isNamespaceAware);
     }
 
     protected BaseXMLBuilder XMLBuilder_parse(String documentString) throws Exception {
@@ -469,6 +470,44 @@ public abstract class BaseXMLBuilderTests extends TestCase {
         builder.element("undefined-prefix:ElementName");
     }
 
+    public void testNamespaceUnawareBuilder() throws Exception {
+        String XML_WITH_NAMESPACES =
+            "<ns1:NamespaceUnwareTest xmlns:ns1=\"urn:1\" xmlns:ns2=\"urn:2\">" +
+                "<ns2:NestedElement>Found me</ns2:NestedElement>" +
+            "</ns1:NamespaceUnwareTest>";
+
+        // Builder set to be unaware of namespaces can traverse DOM with
+        // namespaces without using namespace prefixes
+        BaseXMLBuilder result = XMLBuilder_parse(
+            XML_WITH_NAMESPACES,
+            false,  // enableExternalEntities
+            false  // isNamespaceAware
+        ).xpathFind("/NamespaceUnwareTest/NestedElement");
+        assertEquals("Found me", result.getElement().getTextContent());
+
+        // Builder set to be aware of namespaces (per default) cannot traverse
+        // DOM with namespaces without using namespace prefixes
+        try {
+            result = XMLBuilder_parse(XML_WITH_NAMESPACES)
+                .xpathFind("/NamespaceUnwareTest/NestedElement");
+        } catch (Exception ex) {
+            Throwable cause = null;
+            if (this instanceof TestXMLBuilder2) {
+                cause = ex.getCause();  // Exception wrapped in runtime ex
+            } else {
+                cause = ex;
+            }
+            assertEquals(
+                cause.getClass(), XPathExpressionException.class);
+            assertTrue(
+                cause.getMessage().contains(
+                    "XPath expression \"/NamespaceUnwareTest/NestedElement\""
+                    + " does not resolve to an Element in context"
+                ));
+        }
+        assertEquals("Found me", result.getElement().getTextContent());
+    }
+
     public void testElementBefore() throws Exception {
         BaseXMLBuilder builder = XMLBuilder_create("TestDocument", "urn:default")
                 .namespace("custom", "urn:custom")
@@ -648,7 +687,7 @@ public abstract class BaseXMLBuilderTests extends TestCase {
         String parsedXml = builder.asString();
         assertFalse(parsedXml.indexOf("Injected XXE Data") >= 0);
         // If you enable external entity processing, builder becomes subject to XXE injection
-        builder = XMLBuilder_parse(XML_DOC_WITH_XXE, true);
+        builder = XMLBuilder_parse(XML_DOC_WITH_XXE, true, true);
         parsedXml = builder.asString();
         assertTrue(parsedXml.indexOf("Injected XXE Data") >= 0);
     }

@@ -11,6 +11,14 @@ Fixes:
   are now only parsed if this feature is explicitly enabled by passing a boolean
   flag value to the #create and #parse methods.  
   WARNING: This will break code that expects external entities to be parsed.
+  
+Enhancements:
+
+* Permit users to disable namespace-awareness in the underlying
+  DocumentBuilderFactory when constructing the builder with extended `create()`
+  and `parse()` methods. Namespace awareness is enabled by default unless you
+  use the more explicit versions of these methods that take additional
+  `enableExternalEntities` and `isNamespaceAware` parameters. 
 
 Version 1.1 - 22 July 2014
 --------------------------
