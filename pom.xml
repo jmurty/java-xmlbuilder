@@ -8,6 +8,11 @@
   <name>java-xmlbuilder</name>
   <description>XML Builder is a utility that creates simple XML documents using relatively sparse Java code</description>
   <url>https://github.com/jmurty/java-xmlbuilder</url>
+
+  <properties>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
+  </properties>
   
   <licenses>
     <license>
