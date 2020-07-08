@@ -205,8 +205,8 @@ public abstract class BaseXMLBuilder {
      * @return
      * an XML Document.
      *
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
      */
     protected static Document createDocumentImpl(
         String name, String namespaceURI, boolean enableExternalEntities,
@@ -240,12 +240,12 @@ public abstract class BaseXMLBuilder {
      * {@link DocumentBuilderFactory}
      * @return
      * a builder node that can be used to add more nodes to the XML document.
-     * @throws ParserConfigurationException
      *
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
+     * @throws ParserConfigurationException xyz
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
+     * @throws IOException xyz
+     * @throws SAXException xyz
      */
     protected static Document parseDocumentImpl(
         InputSource inputSource, boolean enableExternalEntities,
@@ -268,7 +268,7 @@ public abstract class BaseXMLBuilder {
      * Uses approach I documented on StackOverflow:
      * http://stackoverflow.com/a/979606/4970
      *
-     * @throws XPathExpressionException
+     * @throws XPathExpressionException xyz
      */
     protected void stripWhitespaceOnlyTextNodesImpl()
         throws XPathExpressionException
@@ -297,7 +297,7 @@ public abstract class BaseXMLBuilder {
      *
      * @return
      * a builder node at the same location as before the operation.
-     * @throws XPathExpressionException
+     * @throws XPathExpressionException xyz
      */
     public abstract BaseXMLBuilder stripWhitespaceOnlyTextNodes()
         throws XPathExpressionException;
@@ -533,7 +533,7 @@ public abstract class BaseXMLBuilder {
      * the name of the XML element.
      * @param namespaceURI
      * a namespace URI
-     * @return
+     * @return xyz
      *
      * @throws IllegalStateException
      * if you attempt to add a child element to an XML node that already
@@ -757,6 +757,7 @@ public abstract class BaseXMLBuilder {
      *
      * @param name
      * the name of the XML element.
+     * @return xyz
      *
      * @throws IllegalStateException
      * if you attempt to add a sibling element to a node where there are already
@@ -776,6 +777,7 @@ public abstract class BaseXMLBuilder {
      * the name of the XML element.
      * @param namespaceURI
      * a namespace URI
+     * @return xyz
      *
      * @throws IllegalStateException
      * if you attempt to add a sibling element to a node where there are already
@@ -1253,6 +1255,8 @@ public abstract class BaseXMLBuilder {
     }
 
     /**
+     * @param anXmlElement xyz
+     *
      * @throws IllegalStateException
      * if the current element contains any child text nodes that aren't pure whitespace.
      * We allow whitespace so parsed XML documents containing indenting or pretty-printing
@@ -1298,7 +1302,7 @@ public abstract class BaseXMLBuilder {
      * null or an empty Properties object, in which case the default output
      * properties will be applied.
      *
-     * @throws TransformerException
+     * @throws TransformerException xyz
      */
     public void toWriter(boolean wholeDocument, Writer writer, Properties outputProperties)
         throws TransformerException {
@@ -1337,7 +1341,7 @@ public abstract class BaseXMLBuilder {
      * null or an empty Properties object, in which case the default output
      * properties will be applied.
      *
-     * @throws TransformerException
+     * @throws TransformerException xyz
      */
     public void toWriter(Writer writer, Properties outputProperties)
         throws TransformerException {
@@ -1358,7 +1362,7 @@ public abstract class BaseXMLBuilder {
      * @return
      * the XML document as a string
      *
-     * @throws TransformerException
+     * @throws TransformerException xyz
      */
     public String asString(Properties outputProperties) throws TransformerException {
         StringWriter writer = new StringWriter();
@@ -1380,7 +1384,7 @@ public abstract class BaseXMLBuilder {
      * @return
      * the XML document as a string
      *
-     * @throws TransformerException
+     * @throws TransformerException xyz
      */
     public String elementAsString(Properties outputProperties) throws TransformerException {
         StringWriter writer = new StringWriter();
@@ -1395,7 +1399,7 @@ public abstract class BaseXMLBuilder {
      * the XML document as a string without the XML declaration at the
      * beginning of the output.
      *
-     * @throws TransformerException
+     * @throws TransformerException xyz
      */
     public String asString() throws TransformerException {
         Properties outputProperties = new Properties();
@@ -1411,7 +1415,7 @@ public abstract class BaseXMLBuilder {
      * the XML document as a string without the XML declaration at the
      * beginning of the output.
      *
-     * @throws TransformerException
+     * @throws TransformerException xyz
      */
     public String elementAsString() throws TransformerException {
         Properties outputProperties = new Properties();
