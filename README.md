@@ -26,14 +26,14 @@ Since version 1.1 this library provides two builder implementations and APIs:
 
  * `XMLBuilder` – the original API – follows standard Java practice of
    re-throwing lower level checked exceptions when you do things like create a
-   new document.  
+   new document.
    You must explicitly `catch` these checked exceptions in your codebase, even
-   though they are unlikely to occur in tested code. 
+   though they are unlikely to occur in tested code.
  * `XMLBuilder2` is a newer API that removes checked exceptions altogether, and
    will instead wrap and propagate lower level exceptions in an unchecked
-   `XMLBuilderRuntimeException`.  
+   `XMLBuilderRuntimeException`.
    Use this class if you don't like the code mess or overhead of try/catching
-   many low-level exceptions that are unlikely to occur in practice. 
+   many low-level exceptions that are unlikely to occur in practice.
 
 Both these versions work identically apart from the handling of errors, so you
 can use whichever version you prefer or "upgrade" from one to the other in
@@ -75,11 +75,11 @@ Produces this XML document:
 Getting Started
 ---------------
 
-See further example usage below and in the 
-[JavaDoc documentation](http://s3.jamesmurty.com/java-xmlbuilder/index.html).
+See further example usage below and in the
+[JavaDoc documentation](http://s3.james.murty.com/java-xmlbuilder/index.html).
 
 Download a Jar file containing the latest version
-[java-xmlbuilder-1.2.jar](http://s3.jamesmurty.com/java-xmlbuilder/java-xmlbuilder-1.2.jar).
+[java-xmlbuilder-1.2.jar](http://s3.james.murty.com/java-xmlbuilder/java-xmlbuilder-1.2.jar).
 
 Maven users can add this project as a dependency with the following additions
 to a POM.xml file:
@@ -195,7 +195,7 @@ methods.
 XMLBuilder builder = XMLBuilder.create("Projects")
     .e("java-xmlbuilder")
         .a("language", "Java")
-        .a("scm","SVN")                    
+        .a("scm","SVN")
         .e("Location")
             .a("type", "URL")
             .t("http://code.google.com/p/java-xmlbuilder/")
@@ -223,7 +223,7 @@ The following methods are available for adding items to the XML document:
 
 ### Output
 
-XMLBuilder includes two convenient methods for outputting a document. 
+XMLBuilder includes two convenient methods for outputting a document.
 
 You can use the `toWriter` method to print the document to an output stream or
 file:
@@ -240,7 +240,7 @@ builder.asString(outputProperties);
 Both of these output methods take an `outputProperties` parameter that you can
 use to control how the output is generated. Any output properties you provide
 are forwarded to the underlying Transformer object that is used to serialize
-the XML document. 
+the XML document.
 
 You might specify any non-standard properties like so:
 
@@ -286,7 +286,7 @@ represents the document's root element, no matter deep an element hierarchy
 your code has built:
 
 ```java
-org.w3c.dom.Element rootElement = 
+org.w3c.dom.Element rootElement =
     XMLBuilder.create("This")
         .e("Element")
             .e("Hierarchy")
@@ -361,13 +361,13 @@ constructors.
 
 You can:
 
-* use the `enableExternalEntities` flag to enable or disable external entities.  
+* use the `enableExternalEntities` flag to enable or disable external entities.
   NOTE: you should leave these disabled, as they are by default, unless you
   really need them because they open you to XML External Entity (XXE) injection
   attacks.
 * use the `isNamespaceAware` flag to enable or disable namespace awareness in
   the underlying `DocumentBuilderFactory`.
- 
+
 
 Release History
 ---------------
