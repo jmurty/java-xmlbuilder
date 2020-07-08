@@ -1,6 +1,18 @@
 Release Notes for java-xmlbuilder
 =================================
 
+Version 1.3 - 8 July 2020
+-------------------------
+
+Fixes:
+
+* Update source version from 1.5 to 1.7 to work with Java versions 11+ which no
+  longer supports `javax.annotation` and because 6 no longer builds with Maven.
+
+* Tweaks to pom.xml to get Maven builds to work with Java 12.
+
+* Replace references to my defunct website with working alternatives.
+
 Version 1.2 - 1 September 2017
 ------------------------------
 
@@ -9,16 +21,16 @@ Fixes:
 * Prevent XML External Entity (XXE) injection attacks by disabling parsing of
   general and parameter external entities by default (#6). External entities
   are now only parsed if this feature is explicitly enabled by passing a boolean
-  flag value to the #create and #parse methods.  
+  flag value to the #create and #parse methods.
   WARNING: This will break code that expects external entities to be parsed.
-  
+
 Enhancements:
 
 * Permit users to disable namespace-awareness in the underlying
   DocumentBuilderFactory when constructing the builder with extended `create()`
   and `parse()` methods. Namespace awareness is enabled by default unless you
   use the more explicit versions of these methods that take additional
-  `enableExternalEntities` and `isNamespaceAware` parameters. 
+  `enableExternalEntities` and `isNamespaceAware` parameters.
 
 Version 1.1 - 22 July 2014
 --------------------------
@@ -27,12 +39,12 @@ Added a new `XMLBuilder2` implementation that avoids checked exceptions in the
 API and throws runtime exceptions instead. This should make the library much
 more pleasant to use, and your code much cleaner, in situations where low-level
 exceptions are unlikely -- which is probably most situations where you would
-use this library.  
+use this library.
 
 For example when creating a new document with the `#create` method, instead of
 needing to explicitly catch the unlikely `ParserConfigurationException`, if you
 use `XMLBuilder2` this exception automatically gets wrapped in the new
-`XMLBuilderRuntimeException` class and can be left to propagate out.  
+`XMLBuilderRuntimeException` class and can be left to propagate out.
 
 Aside from the removal of checked exceptions, `XMLBuilder2` has the same API as
 the original `XMLBuilder` and should therefore be a drop-in replacement in
@@ -45,9 +57,9 @@ Version 1.0 - 6 March 2014
 --------------------------
 
 Jumped version number from 0.7 to 1.0 to better reflect this project's age
-and stability, as well as to celebrate the move to GitHub. 
+and stability, as well as to celebrate the move to GitHub.
 
-* Migrated project from 
+* Migrated project from
   [Google Code](https://code.google.com/p/java-xmlbuilder/) to
   [GitHub](https://github.com/jmurty/java-xmlbuilder). Whew, that's better!
 * Test cases for edge-case issues and questions reported by users.
@@ -91,7 +103,7 @@ Version 0.3 - 2 July 2010
 
 * First release to Maven repository.
 * Parse existing XML documents with `parse` method.
-* Find specific nodes in document with an XPath with `xpathFind`. 
+* Find specific nodes in document with an XPath with `xpathFind`.
 * Added JUnit tests
 
 Version 0.2 - 6 January 2009

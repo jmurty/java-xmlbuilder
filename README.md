@@ -79,7 +79,7 @@ See further example usage below and in the
 [JavaDoc documentation](http://s3.james.murty.com/java-xmlbuilder/index.html).
 
 Download a Jar file containing the latest version
-[java-xmlbuilder-1.2.jar](http://s3.james.murty.com/java-xmlbuilder/java-xmlbuilder-1.2.jar).
+[java-xmlbuilder-1.3.jar](http://s3.james.murty.com/java-xmlbuilder/java-xmlbuilder-1.3.jar).
 
 Maven users can add this project as a dependency with the following additions
 to a POM.xml file:
@@ -90,7 +90,7 @@ to a POM.xml file:
   <dependency>
     <groupId>com.jamesmurty.utils</groupId>
     <artifactId>java-xmlbuilder</artifactId>
-    <version>1.2</version>
+    <version>1.3</version>
   </dependency>
   . . .
 </dependencies>
