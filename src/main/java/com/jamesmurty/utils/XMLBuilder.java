@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2017 James Murty (www.jamesmurty.com)
+ * Copyright 2008-2020 James Murty (github.com/jmurty)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,8 +107,8 @@ public final class XMLBuilder extends BaseXMLBuilder {
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      *
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
      */
     public static XMLBuilder create(String name, String namespaceURI,
         boolean enableExternalEntities, boolean isNamespaceAware)
@@ -134,8 +134,8 @@ public final class XMLBuilder extends BaseXMLBuilder {
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      *
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
      */
     public static XMLBuilder create(String name, boolean enableExternalEntities,
         boolean isNamespaceAware)
@@ -158,8 +158,8 @@ public final class XMLBuilder extends BaseXMLBuilder {
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      *
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
      */
     public static XMLBuilder create(String name, String namespaceURI)
         throws ParserConfigurationException, FactoryConfigurationError
@@ -177,8 +177,8 @@ public final class XMLBuilder extends BaseXMLBuilder {
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      *
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
      */
     public static XMLBuilder create(String name)
         throws ParserConfigurationException, FactoryConfigurationError
@@ -200,12 +200,12 @@ public final class XMLBuilder extends BaseXMLBuilder {
      * {@link DocumentBuilderFactory}
      * @return
      * a builder node that can be used to add more nodes to the XML document.
-     * @throws ParserConfigurationException
      *
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
+     * @throws ParserConfigurationException xyz
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
+     * @throws IOException xyz
+     * @throws SAXException xyz
      */
     public static XMLBuilder parse(
         InputSource inputSource, boolean enableExternalEntities,
@@ -232,11 +232,11 @@ public final class XMLBuilder extends BaseXMLBuilder {
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      *
-     * @throws ParserConfigurationException
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
+     * @throws ParserConfigurationException xyz
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
+     * @throws IOException xyz
+     * @throws SAXException xyz
      */
     public static XMLBuilder parse(
         String xmlString, boolean enableExternalEntities,
@@ -264,11 +264,11 @@ public final class XMLBuilder extends BaseXMLBuilder {
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      *
-     * @throws ParserConfigurationException
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
+     * @throws ParserConfigurationException xyz
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
+     * @throws IOException xyz
+     * @throws SAXException xyz
      */
     public static XMLBuilder parse(File xmlFile, boolean enableExternalEntities,
         boolean isNamespaceAware)
@@ -289,12 +289,12 @@ public final class XMLBuilder extends BaseXMLBuilder {
      * an XML document input source that will be parsed into a DOM.
      * @return
      * a builder node that can be used to add more nodes to the XML document.
-     * @throws ParserConfigurationException
      *
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
+     * @throws ParserConfigurationException xyz
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
+     * @throws IOException xyz
+     * @throws SAXException xyz
      */
     public static XMLBuilder parse(InputSource inputSource)
         throws ParserConfigurationException, SAXException, IOException
@@ -312,11 +312,11 @@ public final class XMLBuilder extends BaseXMLBuilder {
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      *
-     * @throws ParserConfigurationException
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
+     * @throws ParserConfigurationException xyz
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
+     * @throws IOException xyz
+     * @throws SAXException xyz
      */
     public static XMLBuilder parse(String xmlString)
         throws ParserConfigurationException, SAXException, IOException
@@ -334,11 +334,11 @@ public final class XMLBuilder extends BaseXMLBuilder {
      * @return
      * a builder node that can be used to add more nodes to the XML document.
      *
-     * @throws ParserConfigurationException
-     * @throws FactoryConfigurationError
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
+     * @throws ParserConfigurationException xyz
+     * @throws FactoryConfigurationError xyz
+     * @throws ParserConfigurationException xyz
+     * @throws IOException xyz
+     * @throws SAXException xyz
      */
     public static XMLBuilder parse(File xmlFile)
         throws ParserConfigurationException, SAXException, IOException

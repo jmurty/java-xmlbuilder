@@ -2,8 +2,8 @@
 /.classpath
 /.project
 /.settings
+/.envrc
 /mvn
-/HOWTO_RELEASE.txt
 /bin
 /target
 /java-xmlbuilder
