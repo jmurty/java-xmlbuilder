@@ -76,10 +76,10 @@ Getting Started
 ---------------
 
 See further example usage below and in the
-[JavaDoc documentation](http://s3.james.murty.com/java-xmlbuilder/index.html).
+[JavaDoc documentation](http://s3.james.murty.co/java-xmlbuilder/index.html).
 
 Download a Jar file containing the latest version
-[java-xmlbuilder-1.3.jar](http://s3.james.murty.com/java-xmlbuilder/java-xmlbuilder-1.3.jar).
+[java-xmlbuilder-1.3.jar](http://s3.james.murty.co/java-xmlbuilder/java-xmlbuilder-1.3.jar).
 
 Maven users can add this project as a dependency with the following additions
 to a POM.xml file:
