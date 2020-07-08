@@ -6,7 +6,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Properties;
 
-import javax.annotation.Resource;
 import javax.xml.transform.OutputKeys;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
