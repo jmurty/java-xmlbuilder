@@ -3,6 +3,10 @@ java-xmlbuilder
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.jamesmurty.utils/java-xmlbuilder/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.jamesmurty.utils/java-xmlbuilder)
 
+![Build](https://github.com/jmurty/java-xmlbuilder/workflows/Build/badge.svg) ![Codecov](https://github.com/jmurty/java-xmlbuilder/workflows/Codecov/badge.svg)
+
+[![codecov](https://codecov.io/gh/jmurty/java-xmlbuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/jmurty/java-xmlbuilder)
+
 XML Builder is a utility that allows simple XML documents to be constructed
 using relatively sparse Java code.
 
